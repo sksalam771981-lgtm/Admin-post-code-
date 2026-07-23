@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta charset='UTF-8'/>
+  <meta content='width=device-width, initial-scale=1.0' name='viewport'/>
+  <title>Super Admin Panel</title>
+  <link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' rel='stylesheet'/>
+  
+  <b:skin><![CDATA[
+    /* CSS Code */
+    :root {
+      --bg-color: #0b0d17;
+      --card-bg: #131629;
+      --input-bg: #090a12;
+      --accent-purple: #a855f7;
+      --btn-purple: #9333ea;
+      --btn-hover: #7e22ce;
+      --text-white: #f8fafc;
+      --text-gray: #94a3b8;
+      --border-color: rgba(168, 85, 247, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-white);
+      padding: 20px 15px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent-purple);
+      margin-bottom: 25px;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .nav-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 15px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-white);
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn i {
+      font-size: 22px;
+      color: var(--accent-purple);
+    }
+
+    .nav-btn span {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .nav-btn.active {
+      border: 2px solid var(--accent-purple);
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+    }
+
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .section-card.active-section {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent-purple);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .sub-box {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 18px;
+    }
+
+    .sub-box-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ef4444;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-gray);
+      margin-top: 12px;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text-white);
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-purple);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--btn-purple);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-submit:hover {
+      background: var(--btn-hover);
+    }
+  ]]></b:skin>
+</head>
+<body>
+
+  <b:section id='main'/>
+
+  <div class='header-title'>
+    <i class='fas fa-user-shield'/>
+    <span>Super Admin Panel</span>
+  </div>
+
+  <div class='nav-grid'>
+    <div class='nav-btn active' onclick='showTab("tabVideo", this)'>
+      <i class='fas fa-video'/>
+      <span>ভিডিও আপলোড</span>
+    </div>
+    <div class='nav-btn' onclick='showTab("tabAds", this)'>
+      <i class='fas fa-sack-dollar'/>
+      <span>অ্যাড সেটআপ</span>
+    </div>
+    <div class='nav-btn' onclick='showTab("tabCat", this)'>
+      <i class='fas fa-tag'/>
+      <span>ক্যাটাগরি</span>
+    </div>
+    <div class='nav-btn' onclick='showTab("tabLinks", this)'>
+      <i class='fas fa-link'/>
+      <span>মেনু লিংক</span>
+    </div>
+    <div class='nav-btn' onclick='showTab("tabSettings", this)'>
+      <i class='fas fa-gear'/>
+      <span>সেটিংস</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1: VIDEO UPLOAD -->
+  <div class='section-card active-section' id='tabVideo'>
+    <div class='section-header'>
+      <i class='fas fa-upload'/> নতুন ভিডিও পোস্ট করুন
+    </div>
+    <form id='videoForm'>
+      <label>ভিডিও শিরোনাম (Title)</label>
+      <input id='vTitle' placeholder='Video Title' required='required' type='text'/>
+
+      <label>ছবি (URL)</label>
+      <input id='vImg' placeholder='https://' required='required' type='url'/>
+
+      <label>লিংক (Embed Video URL)</label>
+      <input id='vLink' placeholder='Download link...' required='required' type='url'/>
+
+      <label>ক্যাটাগরি</label>
+      <select id='vCat'/>
+
+      <label>কতগুলো অ্যাড দেখতে হবে (Ads Count)</label>
+      <input id='vAds' min='1' required='required' type='number' value='1'/>
+
+      <button class='btn-submit' type='submit'>PUBLISH VIDEO</button>
+    </form>
+  </div>
+
+  <!-- SECTION 2: AD SETUP -->
+  <div class='section-card' id='tabAds'>
+    <div class='section-header'>
+      <i class='fas fa-sack-dollar'/> অ্যাড সেটআপ
+    </div>
+    
+    <div class='sub-box'>
+      <div class='sub-box-title'><i class='fas fa-ad'/> Monetag (2nd Ad)</div>
+      <label>Zone ID (Example: 18110498)</label>
+      <input id='monetagId' placeholder='18110498' type='text'/>
+      <button class='btn-submit' onclick='saveAdSetting("monetagId")'>Save Monetag ID</button>
+    </div>
+
+    <div class='sub-box'>
+      <div class='sub-box-title'><i class='fas fa-chart-line'/> Adsgram Block ID</div>
+      <label>Example: 39333</label>
+      <input id='adsgramId' placeholder='39333' type='text'/>
+      <button class='btn-submit' onclick='saveAdSetting("adsgramId")'>Add ID</button>
+    </div>
+
+    <div class='sub-box'>
+      <div class='sub-box-title'><i class='fas fa-code'/> Banner Ads (HTML)</div>
+      <textarea id='bannerAdCode' placeholder='&lt;a href="..."&gt;...&lt;/a&gt;' rows='3'/>
+      <button class='btn-submit' onclick='saveAdSetting("bannerAdCode")'>Save Banner</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: CATEGORY -->
+  <div class='section-card' id='tabCat'>
+    <div class='section-header'>
+      <i class='fas fa-tag'/> ক্যাটাগরি সেটিং
+    </div>
+    <form id='catForm'>
+      <label>ক্যাটাগরি আইডি (ইংরেজি ছোট হাতের অক্ষর, যেমন: natok)</label>
+      <input id='catId' placeholder='natok' required='required' type='text'/>
+
+      <label>ক্যাটাগরি নাম (ডিসপ্লে নাম, যেমন: নাটক)</label>
+      <input id='catName' placeholder='Name (নাটক)' required='required' type='text'/>
+
+      <button class='btn-submit' type='submit'>Add Category</button>
+    </form>
+  </div>
+
+  <!-- SECTION 4: MENU LINKS -->
+  <div class='section-card' id='tabLinks'>
+    <div class='section-header'>
+      <i class='fas fa-link'/> লিংক সেটিং
+    </div>
+    <form id='linkForm'>
+      <label>Title</label>
+      <input id='lTitle' placeholder='যেমন: Join Telegram' required='required' type='text'/>
+
+      <label>URL</label>
+      <input id='lUrl' placeholder='https://t.me/...' required='required' type='url'/>
+
+      <button class='btn-submit' type='submit'>Add Link</button>
+    </form>
+  </div>
+
+  <!-- SECTION 5: SETTINGS -->
+  <div class='section-card' id='tabSettings'>
+    <div class='section-header'>
+      <i class='fas fa-gear'/> সেটিংস
+    </div>
+    <form id='settingsForm'>
+      <label>Telegram Bot App Link (Direct Link)</label>
+      <input id='botLink' placeholder='https://t.me/your_bot/app' type='url'/>
+
+      <label>Tutorial ID (Youtube)</label>
+      <input id='tutId' placeholder='e7AemaxhT94' type='text'/>
+
+      <label>Daily Limit</label>
+      <input id='dailyLimit' placeholder='10' type='number'/>
+
+      <button class='btn-submit' type='submit'>Save Settings</button>
+    </form>
+  </div>
+
+  <!-- FIREBASE INTEGRATION -->
+  <script type='module'>
+    //<![CDATA[
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";  
+    import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";  
+      
+    // আপনার ফায়ারবেস কনফিগারেশন বসান
+    const firebaseConfig = {  
+      authDomain: "global-earning-zone.firebaseapp.com",  
+      databaseURL: "https://--zone-default-rtdb.firebaseio.com",  
+      projectId: "global--zone",  
+      storageBucket: "global--.firebasestorage.app"
+    };  
+      
+    const app = initializeApp(firebaseConfig);  
+    const db = getDatabase(app);
+
+    // Tab Switcher Function
+    window.showTab = function(tabId, element) {
+      document.querySelectorAll('.section-card').forEach(sec => sec.classList.remove('active-section'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active-section');
+      element.classList.add('active');
+    };
+
+    // 1. Video Upload
+    document.getElementById('videoForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newRef = push(ref(db, 'videos'));
+      set(newRef, {
+        title: document.getElementById('vTitle').value,
+        image_url: document.getElementById('vImg').value,
+        download_link: document.getElementById('vLink').value,
+        category: document.getElementById('vCat').value,
+        ads_count: parseInt(document.getElementById('vAds').value)
+      }).then(() => {
+        alert('ভিডিও সফলতা সহকারে পোস্ট হয়েছে!');
+        document.getElementById('videoForm').reset();
+      });
+    });
+
+    // 2. Load Categories into Dropdown
+    onValue(ref(db, 'categories'), snap => {
+      const vCat = document.getElementById('vCat');
+      vCat.innerHTML = '<option value="all">All</option>';
+      if(snap.val()) {
+        Object.entries(snap.val()).forEach(([id, val]) => {
+          vCat.innerHTML += `<option value="${val.catId}">${val.catName}</option>`;
+        });
+      }
+    });
+
+    // 3. Add Category
+    document.getElementById('catForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const catId = document.getElementById('catId').value;
+      set(ref(db, 'categories/' + catId), {
+        catId: catId,
+        catName: document.getElementById('catName').value
+      }).then(() => {
+        alert('ক্যাটাগরি যুক্ত হয়েছে!');
+        document.getElementById('catForm').reset();
+      });
+    });
+
+    // 4. Add Link
+    document.getElementById('linkForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newRef = push(ref(db, 'menu_links'));
+      set(newRef, {
+        title: document.getElementById('lTitle').value,
+        url: document.getElementById('lUrl').value
+      }).then(() => {
+        alert('মেনু লিংক যুক্ত হয়েছে!');
+        document.getElementById('linkForm').reset();
+      });
+    });
+
+    // 5. Save Ad Settings
+    window.saveAdSetting = function(field) {
+      const val = document.getElementById(field).value;
+      set(ref(db, 'ad_settings/' + field), val).then(() => alert('সেভ হয়েছে!'));
+    };
+
+    // 6. Save Settings
+    document.getElementById('settingsForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      set(ref(db, 'app_settings'), {
+        botLink: document.getElementById('botLink').value,
+        tutId: document.getElementById('tutId').value,
+        dailyLimit: document.getElementById('dailyLimit').value
+      }).then(() => alert('সেটিংস আপডেট হয়েছে!'));
+    });
+    //]]>
+  </script>
+</body>
+</html>
