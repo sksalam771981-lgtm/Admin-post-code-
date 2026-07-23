@@ -1,1 +1,420 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b'>
+<head>
+<meta charset='utf-8'/>
+<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport'/>
+<title>World Viral Video</title>
 
+<!-- Adsgram SDK -->
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+<b:skin><![CDATA[
+.blog-posts, .status-msg-wrap, .status-msg-body, #blog-pager, .post-footer, .feed-links, .blog-feeds, #header-wrapper, .sidebar-container { 
+    display: none !important; 
+    visibility: hidden !important; 
+    height: 0 !important; 
+    margin: 0 !important; 
+    padding: 0 !important; 
+}
+
+:root { 
+    --primary: #a855f7; 
+    --primary-gradient: linear-gradient(135deg, #ec4899, #8b5cf6); 
+    --bg-main: #0b0c1b; 
+    --bg-card: #141529; 
+    --bg-nav: rgba(20, 21, 41, 0.95); 
+    --text-main: #ffffff; 
+    --text-muted: #9ca3af; 
+    --border: 1px solid rgba(255,255,255,0.08); 
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background: var(--bg-main); color: var(--text-main); font-family: 'Poppins', sans-serif; padding-bottom: 90px; }
+.app { max-width: 500px; margin: 0 auto; padding: 12px; }
+
+/* Header Banner */
+.header { background: linear-gradient(135deg, #15162e, #1c1d38); padding: 18px; border-radius: 20px; text-align: center; border: var(--border); margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.title { font-size: 22px; font-weight: 800; color: #a855f7; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.subtitle { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* Dynamic Banner Ad Box */
+.banner-ad-box { margin-bottom: 15px; border-radius: 12px; overflow: hidden; text-align: center; }
+
+/* Filter Scroll Tabs */
+.filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 12px; scrollbar-width: none; }
+.filter-scroll::-webkit-scrollbar { display: none; }
+.filter-btn { padding: 8px 18px; background: #1c1d36; border: var(--border); color: #ccc; border-radius: 50px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.filter-btn.active { background: #ef4444; color: white; border: none; }
+
+/* Search Box */
+.search-wrapper { position: relative; margin-bottom: 15px; }
+.search-input { width: 100%; padding: 12px 20px; padding-right: 50px; border-radius: 50px; background: #181930; border: var(--border); color: white; font-size: 14px; outline: none; }
+.search-input:focus { border-color: #8b5cf6; }
+.search-icon { position: absolute; right: 6px; top: 5px; background: #a855f7; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; }
+
+/* Video Cards */
+.cards { display: flex; flex-direction: column; gap: 15px; }
+.card { background: var(--bg-card); border-radius: 18px; overflow: hidden; border: var(--border); box-shadow: 0 8px 20px rgba(0,0,0,0.2); position: relative; }
+
+.media { position: relative; width: 100%; height: 210px; background: #1e1f3b; overflow: hidden; }
+.media img { width: 100%; height: 100%; object-fit: cover; }
+.heart-btn { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border-radius: 50%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: 0.2s; z-index: 5; }
+.heart-btn.liked { color: #ec4899; }
+
+.meta { padding: 14px 16px; }
+.meta-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.meta h3 { margin: 0; font-size: 16px; font-weight: 600; color: #fff; }
+.view-count { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+
+.actions { display: flex; gap: 10px; }
+.unlock-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; background: var(--primary-gradient); color: white; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
+.unlock-btn.done { background: #10b981; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+.link-btn { width: 46px; height: 46px; background: #252642; border: var(--border); border-radius: 12px; color: #a855f7; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+
+/* Tutorial Section Style */
+.tutorial-card { background: #141529; padding: 15px; border-radius: 18px; border: var(--border); }
+.video-frame { width: 100%; height: 220px; border-radius: 12px; border: none; background: #000; margin-bottom: 15px; }
+.steps-list { display: flex; flex-direction: column; gap: 10px; }
+.step-item { display: flex; align-items: flex-start; gap: 12px; background: #1c1d36; padding: 12px; border-radius: 10px; font-size: 13px; color: #ddd; }
+.step-num { background: #2b2c4d; color: #a855f7; min-width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; }
+
+/* Links Section Style */
+.link-item { background: #141529; padding: 15px 18px; border-radius: 14px; border: var(--border); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.link-item h4 { margin: 0; font-size: 15px; color: #fff; }
+.link-item a { background: #a855f7; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; }
+
+/* Bottom Nav */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-nav); backdrop-filter: blur(12px); border-top: var(--border); display: flex; justify-content: space-around; padding: 10px 0; max-width: 500px; margin: 0 auto; z-index: 100; }
+.nav-item { background: none; border: none; color: #6b7280; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; flex: 1; }
+.nav-item i { font-size: 18px; }
+.nav-text { font-size: 11px; }
+.nav-item.active { color: #ec4899; }
+
+/* Toast */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 8px 20px; border-radius: 50px; font-size: 12px; font-weight: 600; display: none; z-index: 200; }
+.hidden { display: none !important; }
+]]></b:skin>
+
+<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&amp;display=swap' rel='stylesheet'/>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' rel='stylesheet'/>
+</head>
+<body>
+
+<div class='app'>
+
+ <!-- HOME SECTION -->
+ <div id='secHome'>
+   <div class='header'>
+     <h1 class='title'>VIRAL ZONE VIDEO <i class='fas fa-fire' style='color:#ec4899'/></h1>
+     <div class='subtitle'>Exclusive Premium Video</div>
+   </div>
+
+   <!-- Dynamic Banner Ad Area -->
+   <div class='banner-ad-box' id='appBannerAd'/>
+
+   <div class='filter-scroll' id='filterContainer'>
+     <button class='filter-btn active' onclick='setFilter("all", this)'>All</button>
+   </div>
+
+   <div class='search-wrapper'>
+     <input class='search-input' id='searchInput' placeholder='ভিডিও খুঁজুন...' type='text'/>
+     <div class='search-icon'><i class='fas fa-search'/></div>
+   </div>
+
+   <div class='cards' id='cardsList'>
+     <div style='text-align:center; padding:30px; color:#666;'><i class='fas fa-spinner fa-spin'/> লোডিং হচ্ছে...</div>
+   </div>
+ </div>
+
+ <!-- LIKED SECTION -->
+ <div class='hidden' id='secLiked'>
+   <div class='header'>
+     <h1 class='title' style='color:#ec4899;'><i class='fas fa-heart'/> পছন্দের ভিডিও</h1>
+   </div>
+   <div class='cards' id='likedList'/>
+ </div>
+
+ <!-- TUTORIAL SECTION -->
+ <div class='hidden' id='secTutorial'>
+   <div class='header'>
+     <h1 class='title'><i class='fas fa-play-circle'/> টিউটোরিয়াল</h1>
+   </div>
+   <div class='tutorial-card'>
+     <iframe class='video-frame' id='tutorialIframe' src=''></iframe>
+     <div class='steps-list'>
+       <div class='step-item'><div class='step-num'>১</div> UNLOCK বাটনে ক্লিক করুন।</div>
+       <div class='step-item'><div class='step-num'>২</div> নির্দিষ্ট সংখ্যক এড আসবে, ওই এড গুলো সম্পূর্ণভাবে দেখুন।</div>
+       <div class='step-item'><div class='step-num'>৩</div> শেষে ৫ সেকেন্ড অপেক্ষা করলে আনলক হবে।</div>
+     </div>
+   </div>
+ </div>
+
+ <!-- LINKS SECTION -->
+ <div class='hidden' id='secLinks'>
+   <div class='header'>
+     <h1 class='title'><i class='fas fa-link'/> প্রয়োজনীয় লিংক</h1>
+   </div>
+   <div id='linksContainer'>
+     <div style='text-align:center; color:#666;'>শীঘ্রই যুক্ত হবে।</div>
+   </div>
+ </div>
+
+ <!-- BOTTOM NAVIGATION -->
+ <div class='bottom-nav'>
+   <button class='nav-item active' onclick='switchTab("secHome", this)'>
+     <i class='fas fa-home'/>
+     <span class='nav-text'>হোম</span>
+   </button>
+   <button class='nav-item' onclick='switchTab("secLiked", this)'>
+     <i class='fas fa-heart'/>
+     <span class='nav-text'>পছন্দ</span>
+   </button>
+   <button class='nav-item' onclick='switchTab("secTutorial", this)'>
+     <i class='fas fa-book-open'/>
+     <span class='nav-text'>টিউটোরিয়াল</span>
+   </button>
+   <button class='nav-item' onclick='switchTab("secLinks", this)'>
+     <i class='fas fa-link'/>
+     <span class='nav-text'>লিংক</span>
+   </button>
+ </div>
+
+ <div class='toast' id='toast'>লিংক কপি হয়েছে!</div>
+</div>
+
+<b:section id='main' showelement='no' style='display:none;'>
+  <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog'/>
+</b:section>
+
+<script type='module'>
+//<![CDATA[
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";  
+import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";  
+  
+// আপনার সঠিক ফায়ারবেস কনফিগারেশন এখানে যুক্ত করা হয়েছে
+const firebaseConfig = {  
+  apiKey: "AIzaSyB1ZubF0ZPvtdhcWWBa2PGorU7lx0OkN4I",
+  authDomain: "admin-726ec.firebaseapp.com",  
+  databaseURL: "https://admin-726ec-default-rtdb.firebaseio.com",  
+  projectId: "admin-726ec",  
+  storageBucket: "admin-726ec.firebasestorage.app",
+  messagingSenderId: "97796496921",
+  appId: "1:97796496921:web:4bf82701a35b6caca4d488",
+  measurementId: "G-Y8Y7S92HD0"
+};  
+  
+const app = initializeApp(firebaseConfig);  
+const db = getDatabase(app);  
+
+let videosData = [];
+let categoriesData = [];
+let activeFilter = 'all';
+
+let monetagId = '';
+let adsgramId = '';
+
+function initApp() {
+  // 1. Fetch Ad Settings Dynamic
+  onValue(ref(db, 'ad_settings'), snap => {
+    const data = snap.val() || {};
+    monetagId = data.monetagId || '';
+    adsgramId = data.adsgramId || '';
+    if(data.bannerAdCode) {
+      document.getElementById('appBannerAd').innerHTML = data.bannerAdCode;
+    }
+  });
+
+  // 2. Fetch Categories
+  onValue(ref(db, 'categories'), snap => {
+    categoriesData = snap.val() ? Object.values(snap.val()) : [];
+    renderCategories();
+  });
+
+  // 3. Fetch Videos
+  onValue(ref(db, 'videos'), snap => {
+    videosData = [];
+    if(snap.val()) {
+      Object.entries(snap.val()).forEach(([id, val]) => {
+        videosData.push({ id, ...val });
+      });
+    }
+    renderVideos();
+    renderLiked();
+  });
+
+  // 4. Fetch Settings (Tutorial) from app_settings
+  onValue(ref(db, 'app_settings'), snap => {
+    const s = snap.val() || {};
+    if(s.tutId) {
+      document.getElementById('tutorialIframe').src = "https://www.youtube.com/embed/" + s.tutId;
+    }
+  });
+
+  // 5. Fetch Links from menu_links
+  onValue(ref(db, 'menu_links'), snap => {
+    const lCont = document.getElementById('linksContainer');
+    if(snap.val()) {
+      lCont.innerHTML = '';
+      Object.values(snap.val()).forEach(item => {
+        lCont.innerHTML += `
+          <div class="link-item">
+            <h4>${item.title}</h4>
+            <a href="${item.url}" target="_blank">Open</a>
+          </div>
+        `;
+      });
+    }
+  });
+}
+
+function renderCategories() {
+  const container = document.getElementById('filterContainer');
+  container.innerHTML = `<button class="filter-btn ${activeFilter === 'all' ? 'active' : ''}" onclick="setFilter('all', this)">All</button>`;
+  categoriesData.forEach(c => {
+    container.innerHTML += `<button class="filter-btn ${activeFilter === c.catId ? 'active' : ''}" onclick="setFilter('${c.catId}', this)">${c.catName}</button>`;
+  });
+}
+
+function renderVideos() {
+  const container = document.getElementById('cardsList');
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  
+  const filtered = videosData.filter(v => 
+    (v.title || '').toLowerCase().includes(query) && 
+    (activeFilter === 'all' || v.category === activeFilter)
+  );
+
+  container.innerHTML = filtered.length ? '' : '<p style="text-align:center;color:#666;padding:20px;">কোনো ভিডিও পাওয়া যায়নি</p>';
+  filtered.forEach(v => container.appendChild(createCard(v)));
+}
+
+function createCard(v) {
+  const isLiked = getLikes().includes(v.id);
+  const count = getProgress(v.id);
+  const req = parseInt(v.ads_count) || 1;
+  const isUnlocked = count >= req;
+  const views = v.view_count || 0;
+  const fallbackImg = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60';
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="media">
+      <img src="${v.image_url || fallbackImg}" onerror="this.src='${fallbackImg}'">
+      <button class="heart-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${v.id}')">
+        <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
+      </button>
+    </div>
+    <div class="meta">
+      <div class="meta-header">
+        <h3>${v.title || 'Untitled Video'}</h3>
+        <div class="view-count">
+          <i class="far fa-eye"></i> ${views}
+        </div>
+      </div>
+      <div class="actions">
+        <button class="unlock-btn ${isUnlocked ? 'done' : ''}" onclick="handleAdClick('${v.id}', '${v.download_link || '#'}', ${req})">
+          ${isUnlocked ? '<i class="fas fa-download"></i> DOWNLOAD' : `<i class="fas fa-play"></i> UNLOCK (${count}/${req})`}
+        </button>
+        <button class="link-btn" onclick="copyLink('${v.id}')"><i class="fas fa-link"></i></button>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+window.handleAdClick = (id, link, req) => {
+  let count = getProgress(id);
+  if(count >= req) {
+    window.open(link, '_blank');
+    return;
+  }
+
+  // Trigger Ads Integration (Adsgram -> Monetag)
+  if (adsgramId && window.Adsgram) {
+    window.Adsgram.init({ blockId: adsgramId }).show().then(() => {
+      completeAdWatch(id, req);
+    }).catch(() => {
+      showFallbackAd(id, req);
+    });
+  } else {
+    showFallbackAd(id, req);
+  }
+};
+
+function showFallbackAd(id, req) {
+  if (monetagId) {
+    window.open(`https://www.highrevenuegate.com/${monetagId}`, '_blank');
+  }
+  completeAdWatch(id, req);
+}
+
+function completeAdWatch(id, req) {
+  let count = getProgress(id) + 1;
+  localStorage.setItem('p_' + id, count);
+  
+  if(count >= req) {
+    const viewRef = ref(db, 'videos/' + id + '/view_count');
+    runTransaction(viewRef, (curr) => (curr || 0) + 1);
+  }
+  
+  renderVideos();
+  renderLiked();
+}
+
+function getLikes() { return JSON.parse(localStorage.getItem('user_likes') || '[]'); }
+function getProgress(id) { return parseInt(localStorage.getItem('p_' + id) || 0); }
+
+window.toggleLike = (id) => {
+  let likes = getLikes();
+  if (likes.includes(id)) {
+    likes = likes.filter(x => x !== id);
+  } else {
+    likes.push(id);
+  }
+  localStorage.setItem('user_likes', JSON.stringify(likes));
+  renderVideos();
+  renderLiked();
+};
+
+function renderLiked() {
+  const container = document.getElementById('likedList');
+  const likes = getLikes();
+  const likedVids = videosData.filter(v => likes.includes(v.id));
+  
+  container.innerHTML = likedVids.length ? '' : '<p style="text-align:center;color:#666;padding:20px;">আপনার কোনো পছন্দের ভিডিও নেই</p>';
+  likedVids.forEach(v => container.appendChild(createCard(v)));
+}
+
+window.switchTab = (secId, btn) => {
+  ['secHome', 'secLiked', 'secTutorial', 'secLinks'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById(secId).classList.remove('hidden');
+
+  document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+  btn.classList.add('active');
+};
+
+window.setFilter = (catId, btn) => {
+  activeFilter = catId;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVideos();
+};
+
+window.copyLink = (id) => {
+  navigator.clipboard.writeText(window.location.origin + '?video=' + id);
+  const toast = document.getElementById('toast');
+  toast.style.display = 'block';
+  setTimeout(() => toast.style.display = 'none', 2000);
+};
+
+document.getElementById('searchInput').oninput = renderVideos;
+
+initApp();
+//]]>
+</script>
+</body>
+</html>
