@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viral Video Platform</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK (v10 Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 📱 টেলিগ্রাম মিনি অ্যাপের জন্য ১০০% ফুল স্ক্রিন মোড */
+        .fullscreen-video-mode {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            z-index: 999999 !important;
+            background: #000 !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+        }
+
+        .fullscreen-video-mode video {
+            max-height: 85vh !important;
+            height: 85vh !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans select-none text-gray-800">
+
+    <!-- Mobile Screen Wrapper -->
+    <div class="max-w-md mx-auto bg-white min-h-screen flex flex-col justify-between shadow-lg relative pb-16">
+        
+        <!-- Top Header -->
+        <header class="bg-white border-b border-gray-100 px-4 py-3 flex justify-between items-center sticky top-0 z-30">
+            <div class="flex items-center space-x-2">
+                <span class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">▶</span>
+                <span class="font-bold text-green-600 tracking-wide text-sm flex items-center">
+                    MINI APP <span class="bg-green-100 text-green-700 text-[9px] px-1.5 py-0.5 rounded ml-1 font-extrabold">PRO</span>
+                </span>
+            </div>
+            <div class="flex items-center space-x-3 text-gray-500">
+                <button onclick="toggleSearchBar()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </button>
+                <button class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200"><i class="fa-solid fa-bell text-xs"></i></button>
+                <!-- ইউজার ইনিশিয়াল -->
+                <div id="header-avatar" onclick="switchTab('profile')" class="w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-xs font-extrabold border border-purple-200 cursor-pointer">
+                    ..
+                </div>
+            </div>
+        </header>
+
+        <!-- ডাইনামিক সার্চ বার -->
+        <div id="search-bar-container" class="hidden px-4 py-2 bg-gray-50 border-b border-gray-100 transition-all">
+            <div class="relative flex items-center">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 text-gray-400 text-xs"></i>
+                <input type="text" id="search-input" oninput="onSearchInput(this.value)" placeholder="ভিডিওর নাম লিখে সার্চ করুন..." class="w-full pl-9 pr-8 py-2 bg-white border border-gray-200 rounded-xl text-xs outline-none focus:border-purple-500">
+                <button onclick="toggleSearchBar()" class="absolute right-3 text-gray-400 hover:text-gray-600 text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Horizontal Filter -->
+        <div id="category-pills" class="flex space-x-2 px-4 py-2 overflow-x-auto whitespace-nowrap bg-white border-b border-gray-100 scrollbar-none">
+            <!-- ক্যাটাগরি ডাইনামিকালি লোড হবে -->
+        </div>
+
+        <!-- Main Content Feed -->
+        <main class="flex-grow p-3 space-y-4 overflow-y-auto">
+            
+            <!-- 1. HOME VIEW -->
+            <div id="view-home" class="tab-view space-y-4">
+                <div id="video-feed" class="space-y-6">
+                    <!-- ভিডিও কার্ডসমূহ -->
+                </div>
+            </div>
+
+            <!-- 2. FAVORITES VIEW -->
+            <div id="view-favorites" class="tab-view hidden space-y-4">
+                <h2 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                    <i class="fa-solid fa-heart text-red-500"></i> আপনার ফেভারিট ভিডিওসমূহ
+                </h2>
+                <div id="favorites-container" class="space-y-4">
+                    <p class="text-center text-gray-400 py-10 text-xs">ফেভারিট তালিকায় কোনো ভিডিও নেই।</p>
+                </div>
+            </div>
+
+            <!-- 3. TUTORIAL VIEW -->
+            <div id="view-tutorial" class="tab-view hidden space-y-4">
+                <h2 class="text-base font-extrabold text-gray-900 tracking-tight">টিউটোরিয়াল নির্দেশিকা</h2>
+                <div class="bg-black rounded-3xl overflow-hidden h-[360px] w-full relative shadow-xl border border-gray-900">
+                    <iframe id="streamable-player" class="w-full h-full border-0" allowfullscreen></iframe>
+                </div>
+                <div class="bg-purple-50/60 p-4 rounded-3xl border border-purple-100/80 text-xs text-purple-950 space-y-2">
+                    <p class="font-bold text-sm text-purple-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info text-purple-700"></i> কীভাবে ভিডিও আনলক করবেন?
+                    </p>
+                    <p class="leading-relaxed">১. প্রতিবার <b>UNLOCK</b> বাটনে চাপ দিলে এড ওপেন হবে।</p>
+                    <p class="leading-relaxed">২. কমপক্ষে ৭ সেকেন্ড এডের পেজে অবস্থান করে ব্যাকে আসুন।</p>
+                    <p class="leading-relaxed">৩. ৩টি ধাপ সম্পন্ন করার পর ভিডিওটি আনলক হবে। <b>২ মিনিট পর</b> ভিডিওটি পুনরায় দেখতে আবার এড দেখতে হবে।</p>
+                </div>
+            </div>
+
+            <!-- 4. CHANNELS VIEW -->
+            <div id="view-channels" class="tab-view hidden space-y-4">
+                <h2 class="text-sm font-bold text-gray-800">অফিসিয়াল চ্যানেলসমূহ</h2>
+                <div id="channels-list" class="space-y-2">
+                    <p class="text-center text-gray-400 py-6 text-xs">চ্যানেল লোড হচ্ছে...</p>
+                </div>
+            </div>
+
+            <!-- 5. PROFILE VIEW -->
+            <div id="view-profile" class="tab-view hidden space-y-5">
+                <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm text-center relative overflow-hidden">
+                    <div id="profile-avatar" class="w-24 h-24 bg-gradient-to-tr from-amber-300 via-amber-400 to-amber-200 text-amber-900 rounded-full flex items-center justify-center text-3xl font-extrabold mx-auto mb-3 border-4 border-purple-400 shadow-md">
+                        ..
+                    </div>
+                    <h3 id="profile-name" class="font-black text-gray-900 text-xl tracking-tight">লোড হচ্ছে...</h3>
+                    <p id="profile-handle" class="text-xs text-gray-500 font-bold mt-1">@id</p>
+
+                    <div class="grid grid-cols-3 gap-2 mt-6 pt-5 border-t border-gray-100 text-center">
+                        <div>
+                            <span id="stat-favorites" class="block font-black text-xl text-purple-600">০</span>
+                            <span class="text-[11px] text-gray-400 font-semibold">Favorites</span>
+                        </div>
+                        <div>
+                            <span id="stat-unlocked" class="block font-black text-xl text-purple-600">০</span>
+                            <span class="text-[11px] text-gray-400 font-semibold">Unlocked</span>
+                        </div>
+                        <div>
+                            <span id="stat-watched" class="block font-black text-xl text-purple-600">০</span>
+                            <span class="text-[11px] text-gray-400 font-semibold">Watched</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-3xl p-2 shadow-sm space-y-1">
+                    <div onclick="copyMyReferralLink()" class="flex items-center justify-between p-3.5 hover:bg-gray-50 rounded-2xl cursor-pointer transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-indigo-950 text-white rounded-xl flex items-center justify-center text-sm shadow">
+                                <i class="fa-solid fa-link"></i>
+                            </div>
+                            <span class="font-bold text-xs text-gray-800">Copy My Link</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </div>
+
+                    <div onclick="switchTab('tutorial')" class="flex items-center justify-between p-3.5 hover:bg-gray-50 rounded-2xl cursor-pointer transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-sm shadow">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </div>
+                            <span class="font-bold text-xs text-gray-800">View Tutorial</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </div>
+
+                    <div onclick="shareAppLink()" class="flex items-center justify-between p-3.5 hover:bg-gray-50 rounded-2xl cursor-pointer transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-emerald-900 text-white rounded-xl flex items-center justify-center text-sm shadow">
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </div>
+                            <span class="font-bold text-xs text-gray-800">Share App</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 🎬 AD MODAL -->
+        <div id="ad-modal" class="hidden fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 backdrop-blur-md">
+            <div class="bg-[#121824] text-white w-full max-w-xs rounded-3xl p-6 text-center shadow-2xl relative border border-gray-800 space-y-4">
+                <button onclick="closeAdModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-gray-800/80 w-8 h-8 rounded-full flex items-center justify-center text-sm transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div id="modal-step-dots" class="flex justify-center items-center gap-2 pt-2"></div>
+                <div class="text-4xl text-amber-500 my-1">
+                    <i class="fa-solid fa-clapperboard"></i>
+                </div>
+                <h3 id="modal-step-title" class="text-xl font-extrabold text-white tracking-wide">
+                    ১ম বিজ্ঞাপন দেখুন
+                </h3>
+                <div class="space-y-1">
+                    <p class="text-xs text-gray-200 leading-relaxed font-medium">
+                        নিচের বাটনে ক্লিক করুন এবং কমপক্ষে <span class="text-amber-500 font-bold bg-amber-500/10 px-1 py-0.5 rounded">৭সেকেন্ড</span> ওই পেজে থাকুন, তারপর ফিরে আসুন।
+                    </p>
+                    <p class="text-[11px] text-gray-400 font-normal">
+                        ৭ সেকেন্ডের আগে ফিরলে আবার দেখতে হবে।
+                    </p>
+                </div>
+                <div id="ad-warning-box" class="hidden bg-red-950/90 border border-red-800 text-red-300 p-3 rounded-2xl text-xs leading-snug font-semibold text-left shadow-lg">
+                    ▲ আপনি ৭ সেকেন্ডের আগেই ফিরে এসেছেন! দয়া করে আবার বাটনে ক্লিক করে সম্পূর্ণ এডটি দেখুন।
+                </div>
+                <button id="modal-action-btn" onclick="openAdLink()" class="w-full bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:brightness-110 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl text-sm shadow-xl tracking-wide transition-all duration-200 flex items-center justify-center gap-2">
+                    <span id="modal-btn-text">এড ১/৩</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 🍿 IN-APP VIDEO PLAYER MODAL (ইনস্ট্যান্ট ওপেন ও বাফারিং স্পিনার) -->
+        <div id="video-player-modal" class="hidden fixed inset-0 bg-black/95 flex flex-col justify-between p-3 z-50 overflow-y-auto">
+            <div class="flex justify-between items-center text-white pb-2 border-b border-gray-800">
+                <h3 id="player-video-title" class="text-sm font-bold truncate pr-4">ভিডিও প্লেয়ার</h3>
+                <div class="flex items-center space-x-2">
+                    <!-- ফুল স্ক্রিন বাটন -->
+                    <button onclick="toggleVideoFullscreen()" class="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-white shrink-0" title="ফুল স্ক্রিন">
+                        <i class="fa-solid fa-expand text-xs"></i>
+                    </button>
+                    <!-- ক্লোজ বাটন -->
+                    <button onclick="closeVideoPlayerModal()" class="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-white shrink-0">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ভিডিও প্লেয়ার ও বাফারিং লোডার -->
+            <div class="my-auto py-2 relative flex items-center justify-center">
+                <div id="video-spinner" class="absolute z-10 flex flex-col items-center gap-2 text-white">
+                    <i class="fa-solid fa-circle-notch fa-spin text-3xl text-purple-500"></i>
+                    <span class="text-xs text-gray-300 font-semibold">ভিডিও লোড হচ্ছে...</span>
+                </div>
+                <video id="player-video-element" controls referrerpolicy="no-referrer" preload="auto" class="w-full max-h-[75vh] rounded-2xl bg-black shadow-2xl object-contain relative z-20" playsinline webkit-playsinline></video>
+            </div>
+
+            <!-- 📢 টেলিগ্রাম চ্যানেল জয়েন বাটন -->
+            <div class="space-y-2 pt-2 border-t border-gray-800 text-center">
+                <button onclick="handleTelegramChannelClick()" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:brightness-110 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl text-sm shadow-xl tracking-wide transition-all duration-200 flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-telegram text-lg"></i> JOIN NOW TELEGRAM CHANNEL
+                </button>
+                <p class="text-[10px] text-gray-400">সব আপডেট পেতে আমাদের টেলিগ্রাম চ্যানেলে যুক্ত হোন</p>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-100 flex justify-around py-2 z-40 shadow-lg">
+            <button onclick="switchTab('home', this)" class="nav-btn flex flex-col items-center text-purple-600">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="text-[9px] mt-0.5 font-semibold">Home</span>
+            </button>
+            <button onclick="switchTab('favorites', this)" class="nav-btn flex flex-col items-center text-gray-400">
+                <i class="fa-solid fa-heart text-lg"></i>
+                <span class="text-[9px] mt-0.5 font-semibold">Favorites</span>
+            </button>
+            <button onclick="switchTab('tutorial', this)" class="nav-btn flex flex-col items-center text-gray-400">
+                <i class="fa-solid fa-circle-play text-lg"></i>
+                <span class="text-[9px] mt-0.5 font-semibold">Tutorial</span>
+            </button>
+            <button onclick="switchTab('channels', this)" class="nav-btn flex flex-col items-center text-gray-400">
+                <i class="fa-brands fa-telegram text-lg"></i>
+                <span class="text-[9px] mt-0.5 font-semibold">Channels</span>
+            </button>
+            <button onclick="switchTab('profile', this)" class="nav-btn flex flex-col items-center text-gray-400">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[9px] mt-0.5 font-semibold">Profile</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <script>
+        // 🔗 Adsterra Smart Link
+        const ADSTERRA_DIRECT_LINK = "https://www.effectivecpmnetwork.com/isey6ammc?key=f907b252da2d1ff702c517f3e59d44ba"; 
+
+        // Firebase কনফিগারেশন
+        const firebaseConfig = {
+            apiKey: "AIzaSyCtKYGQ-fvuVifuDNJ_tlNmKJ2gjEqyYWU",
+            authDomain: "viralzone-3e974.firebaseapp.com",
+            databaseURL: "https://viralzone-3e974-default-rtdb.firebaseio.com",
+            projectId: "viralzone-3e974",
+            storageBucket: "viralzone-3e974.firebasestorage.app",
+            messagingSenderId: "63267470809",
+            appId: "1:63267470809:web:fa7f5d92063e69c42aadc8",
+            measurementId: "G-7L6FPDW7X2"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let rawVideos = {};
+        let activeCategory = 'All';
+        let searchQuery = '';
+        let progressMap = JSON.parse(localStorage.getItem('unlockProgress')) || {};
+        let unlockTimeMap = JSON.parse(localStorage.getItem('unlockTimeMap')) || {};
+        let favoritesMap = JSON.parse(localStorage.getItem('favVideos')) || {};
+        let tutorialVideoUrl = "https://streamable.com/e/m4x2zp";
+        let officialChannelLink = "https://t.me";
+
+        const TWO_MINUTES_MS = 2 * 60 * 1000;
+        const REQUIRED_STAY_SECONDS = 7;
+
+        let activeAdKey = null;
+        let activeStep = 1;
+        let isDownloading = false;
+
+        function resetPartialProgress() {
+            let changed = false;
+            Object.keys(progressMap).forEach(key => {
+                if (progressMap[key] > 0 && progressMap[key] < 3) {
+                    progressMap[key] = 0;
+                    changed = true;
+                }
+            });
+            if (changed) {
+                localStorage.setItem('unlockProgress', JSON.stringify(progressMap));
+            }
+        }
+
+        function checkExpiryStatus() {
+            const now = Date.now();
+            let changed = false;
+
+            Object.keys(unlockTimeMap).forEach(key => {
+                if (unlockTimeMap[key] && (now - unlockTimeMap[key] > TWO_MINUTES_MS)) {
+                    progressMap[key] = 0;
+                    delete unlockTimeMap[key];
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                localStorage.setItem('unlockProgress', JSON.stringify(progressMap));
+                localStorage.setItem('unlockTimeMap', JSON.stringify(unlockTimeMap));
+            }
+        }
+
+        setInterval(() => {
+            const homeTab = document.getElementById('view-home');
+            if (homeTab && !homeTab.classList.contains('hidden')) {
+                updateUnlockedTimerButtons();
+            }
+        }, 1000);
+
+        function updateUnlockedTimerButtons() {
+            const now = Date.now();
+            let needsRerender = false;
+
+            Object.keys(unlockTimeMap).forEach(key => {
+                const unlockTime = unlockTimeMap[key];
+                if (unlockTime) {
+                    const elapsed = now - unlockTime;
+                    const remainingMs = TWO_MINUTES_MS - elapsed;
+
+                    if (remainingMs <= 0) {
+                        progressMap[key] = 0;
+                        delete unlockTimeMap[key];
+                        needsRerender = true;
+                    } else {
+                        const btnEl = document.getElementById(`unlock-btn-${key}`);
+                        if (btnEl) {
+                            const totalSec = Math.floor(remainingMs / 1000);
+                            const m = Math.floor(totalSec / 60);
+                            const s = totalSec % 60;
+                            const timeStr = `${m}:${s < 10 ? '0' : ''}${s}`;
+                            btnEl.innerHTML = `<i class="fa-solid fa-play mr-1"></i> VIEW VIDEO (আনলকড - ${timeStr})`;
+                        }
+                    }
+                }
+            });
+
+            if (needsRerender) {
+                localStorage.setItem('unlockProgress', JSON.stringify(progressMap));
+                localStorage.setItem('unlockTimeMap', JSON.stringify(unlockTimeMap));
+                renderVideos();
+            }
+        }
+
+        // ইউজার ডাটা
+        let userName = "";
+        let userHandle = "";
+        let userInitials = "";
+
+        function initializeUserData() {
+            resetPartialProgress();
+
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+                const tg = window.Telegram.WebApp;
+                tg.ready();
+                const tgUser = tg.initDataUnsafe.user;
+                
+                const firstName = tgUser.first_name || "";
+                const lastName = tgUser.last_name || "";
+                userName = (firstName + " " + lastName).trim() || "Telegram User";
+                userHandle = tgUser.username ? `@${tgUser.username}` : `ID: ${tgUser.id}`;
+                
+                const fChar = firstName ? firstName.charAt(0) : "U";
+                const lChar = lastName ? lastName.charAt(0) : (tgUser.username ? tgUser.username.charAt(0) : "G");
+                userInitials = (fChar + lChar).toUpperCase();
+            } else {
+                let savedId = localStorage.getItem('app_user_id');
+                let savedName = localStorage.getItem('app_user_name');
+                if (!savedId) {
+                    savedId = Math.floor(100000000 + Math.random() * 900000000).toString();
+                    savedName = "User #" + savedId.substring(0, 4);
+                    localStorage.setItem('app_user_id', savedId);
+                    localStorage.setItem('app_user_name', savedName);
+                }
+                userName = savedName;
+                userHandle = "ID: " + savedId;
+                userInitials = savedName.substring(0, 2).toUpperCase();
+            }
+
+            document.getElementById('header-avatar').innerText = userInitials;
+            document.getElementById('profile-avatar').innerText = userInitials;
+            document.getElementById('profile-name').innerText = userName;
+            document.getElementById('profile-handle').innerText = userHandle;
+            
+            updateProfileStats();
+            checkStayTimeAndVerify();
+        }
+
+        window.addEventListener('DOMContentLoaded', initializeUserData);
+
+        database.ref('videos').on('value', (snapshot) => {
+            rawVideos = snapshot.val() || {};
+            checkExpiryStatus();
+            renderCategories();
+            renderVideos();
+            renderFavorites();
+        });
+
+        database.ref('channels').on('value', (snapshot) => {
+            const channels = snapshot.val() || {};
+            const keys = Object.keys(channels);
+            if(keys.length > 0) {
+                officialChannelLink = channels[keys[0]].link || "https://t.me";
+            }
+            renderChannels(channels);
+        });
+
+        database.ref('settings/tutorialVideo').on('value', (snapshot) => {
+            if(snapshot.exists()) {
+                tutorialVideoUrl = formatStreamableUrl(snapshot.val());
+                document.getElementById('streamable-player').src = tutorialVideoUrl;
+            }
+        });
+
+        function formatStreamableUrl(url) {
+            if (!url) return '';
+            if (url.includes('/e/')) return url;
+            const parts = url.trim().split('/');
+            const id = parts[parts.length - 1] || parts[parts.length - 2];
+            return 'https://streamable.com/e/' + id;
+        }
+
+        function toggleSearchBar() {
+            const bar = document.getElementById('search-bar-container');
+            bar.classList.toggle('hidden');
+            if(!bar.classList.contains('hidden')) {
+                document.getElementById('search-input').focus();
+            } else {
+                searchQuery = '';
+                document.getElementById('search-input').value = '';
+                renderVideos();
+            }
+        }
+
+        function onSearchInput(value) {
+            searchQuery = value.trim().toLowerCase();
+            renderVideos();
+        }
+
+        function renderChannels(channels) {
+            const container = document.getElementById('channels-list');
+            container.innerHTML = '';
+            const keys = Object.keys(channels);
+            if(keys.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-400 py-6 text-xs">কোনো চ্যানেল যুক্ত করা হয়নি।</p>`;
+                return;
+            }
+            keys.forEach(key => {
+                const ch = channels[key];
+                const btn = document.createElement('div');
+                btn.className = "flex items-center justify-between bg-blue-50 border border-blue-100 p-3.5 rounded-2xl text-xs font-bold text-blue-700 hover:bg-blue-100 transition cursor-pointer";
+                btn.onclick = () => {
+                    if (window.Telegram?.WebApp?.openTelegramLink && ch.link.includes('t.me')) {
+                        window.Telegram.WebApp.openTelegramLink(ch.link);
+                    } else {
+                        window.open(ch.link, '_blank');
+                    }
+                };
+                btn.innerHTML = `<span class="flex items-center gap-2"><i class="fa-brands fa-telegram text-lg text-blue-600"></i> ${ch.name}</span><i class="fa-solid fa-chevron-right text-gray-400"></i>`;
+                container.appendChild(btn);
+            });
+        }
+
+        function renderCategories() {
+            const pillsContainer = document.getElementById('category-pills');
+            const categories = ['All'];
+            Object.values(rawVideos).forEach(v => {
+                if (v.category && !categories.includes(v.category)) categories.push(v.category);
+            });
+
+            pillsContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = cat === activeCategory 
+                    ? "px-4 py-1.5 text-xs rounded-full bg-purple-600 text-white font-semibold transition shadow-sm"
+                    : "px-4 py-1.5 text-xs rounded-full bg-gray-100 text-gray-600 font-semibold transition hover:bg-gray-200";
+                btn.innerText = cat;
+                btn.onclick = () => {
+                    activeCategory = cat;
+                    renderCategories();
+                    renderVideos();
+                };
+                pillsContainer.appendChild(btn);
+            });
+        }
+
+        function renderVideos() {
+            checkExpiryStatus();
+            const feed = document.getElementById('video-feed');
+            feed.innerHTML = '';
+
+            const allKeysReversed = Object.keys(rawVideos).reverse();
+
+            const filteredKeys = allKeysReversed.filter(key => {
+                const item = rawVideos[key];
+                const matchesCat = activeCategory === 'All' || item.category === activeCategory;
+                const matchesSearch = !searchQuery || (item.title && item.title.toLowerCase().includes(searchQuery));
+                return matchesCat && matchesSearch;
+            });
+
+            if (filteredKeys.length === 0) {
+                feed.innerHTML = `<p class="text-center text-gray-400 py-10 text-xs">কোনো ভিডিও পোস্ট পাওয়া যায়নি।</p>`;
+                return;
+            }
+
+            filteredKeys.forEach(key => feed.appendChild(createVideoCard(key, rawVideos[key])));
+        }
+
+        function handleCardClick(key, url) {
+            const currentProgress = progressMap[key] || 0;
+            if (currentProgress < 3) {
+                triggerAdModal(key);
+            } else {
+                viewVideo(key, url);
+            }
+        }
+
+        function createVideoCard(key, item) {
+            const currentProgress = progressMap[key] || 0;
+            const isFav = !!favoritesMap[key];
+
+            let timerFormattedText = "2:00";
+            if (currentProgress >= 3 && unlockTimeMap[key]) {
+                const elapsed = Date.now() - unlockTimeMap[key];
+                const remMs = TWO_MINUTES_MS - elapsed;
+                if (remMs > 0) {
+                    const totalSec = Math.floor(remMs / 1000);
+                    const m = Math.floor(totalSec / 60);
+                    const s = totalSec % 60;
+                    timerFormattedText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                }
+            }
+
+            const postCard = document.createElement('div');
+            postCard.className = "bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm p-3 space-y-3";
+            postCard.id = `post-card-${key}`;
+
+            postCard.innerHTML = `
+                <div onclick="handleCardClick('${key}', '${item.url}')" class="grid grid-cols-2 gap-1 rounded-xl overflow-hidden relative cursor-pointer">
+                    <img src="${item.thumbnail1 || 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=250'}" class="w-full h-44 object-cover">
+                    <img src="${item.thumbnail2 || 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?q=80&w=250'}" class="w-full h-44 object-cover">
+                    <span class="absolute top-2 left-2 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">NEW</span>
+                    
+                    <button onclick="toggleFavorite('${key}', event)" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white transition active:scale-125 z-10">
+                        <i class="fa-solid fa-heart ${isFav ? 'text-red-500' : 'text-white'} text-sm"></i>
+                    </button>
+                </div>
+
+                <div onclick="handleCardClick('${key}', '${item.url}')" class="space-y-1 cursor-pointer">
+                    <div class="flex items-start space-x-2">
+                        <span class="w-7 h-7 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">V</span>
+                        <div class="flex-grow">
+                            <h3 class="font-bold text-gray-900 text-xs leading-snug line-clamp-2">${item.title}</h3>
+                            <p class="text-[10px] text-gray-400 mt-1 font-semibold">${item.badge || 'PREMIUM LINK ☀️'} | 👁️ ${item.views || 0} views</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] text-gray-500 font-semibold px-1">
+                    <button onclick="toggleFavorite('${key}', event)" class="flex items-center gap-1.5 hover:text-red-500 transition">
+                        <i class="fa-solid fa-heart ${isFav ? 'text-red-500' : 'text-gray-400'}"></i> 
+                        <span>${item.likes || 0}</span>
+                    </button>
+                    <span id="card-status-${key}" class="text-purple-600 font-bold">${currentProgress > 0 && currentProgress < 3 ? `${currentProgress}টি এড কমপ্লিট ✅` : 'Watch quickly before it expires'}</span>
+                </div>
+
+                <div class="flex items-center justify-between px-2 text-[10px] text-gray-400 font-bold">
+                    <span class="${currentProgress >= 1 ? 'text-purple-600' : ''}">AD 1</span>
+                    <div class="flex-grow mx-2 h-1 bg-gray-100 relative rounded">
+                        <div id="card-progress-${key}" class="h-1 bg-purple-600 rounded transition-all duration-300" style="width: ${(currentProgress / 3) * 100}%"></div>
+                    </div>
+                    <span class="${currentProgress >= 3 ? 'text-purple-600' : ''}">AD 3</span>
+                </div>
+
+                <div id="card-action-box-${key}">
+                    ${currentProgress < 3 ? `
+                        <button onclick="triggerAdModal('${key}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs tracking-wider transition">
+                            <i class="fa-solid fa-lock mr-1"></i> UNLOCK ${currentProgress}/3
+                        </button>
+                    ` : `
+                        <button id="unlock-btn-${key}" onclick="viewVideo('${key}', '${item.url}')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-xl text-xs tracking-wider transition">
+                            <i class="fa-solid fa-play mr-1"></i> VIEW VIDEO (আনলকড - ${timerFormattedText})
+                        </button>
+                    `}
+                </div>
+            `;
+            return postCard;
+        }
+
+        // =======================================================
+        // 🍿 IN-APP VIDEO PLAYER (০ মি-সেকেন্ডে ইনস্ট্যান্ট ওপেন)
+        // =======================================================
+        function viewVideo(key, url) {
+            // ১. ইনস্ট্যান্ট মডাল ওপেন
+            const postItem = rawVideos[key];
+            document.getElementById('player-video-title').innerText = postItem?.title || "ভিডিও প্লেয়ার";
+            
+            const videoEl = document.getElementById('player-video-element');
+            const spinner = document.getElementById('video-spinner');
+            const videoSrc = url || "https://files.catbox.moe/9gro6c.mp4";
+            
+            // স্পিনার শো করা
+            if(spinner) spinner.style.display = 'flex';
+
+            videoEl.src = videoSrc;
+            
+            videoEl.oncanplay = function() {
+                if(spinner) spinner.style.display = 'none';
+            };
+
+            try { history.pushState({ videoModal: true }, ''); } catch(e){}
+
+            document.getElementById('video-player-modal').classList.remove('hidden');
+            
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
+                window.Telegram.WebApp.BackButton.show();
+                window.Telegram.WebApp.BackButton.onClick(closeVideoPlayerModal);
+            }
+            
+            videoEl.play().catch(() => {});
+
+            // ২. ব্যাকগ্রাউন্ডে ফায়ারবেস ভিউ পয়েন্ট আপডেট (ফাস্ট এক্সিকিউশন)
+            database.ref('videos/' + key + '/views').transaction((currentViews) => (currentViews || 0) + 1);
+            let watchedCount = parseInt(localStorage.getItem('watchedCount') || '0') + 1;
+            localStorage.setItem('watchedCount', watchedCount);
+            updateProfileStats();
+        }
+
+        function toggleVideoFullscreen() {
+            const videoEl = document.getElementById('player-video-element');
+            const modalEl = document.getElementById('video-player-modal');
+            
+            if (videoEl.requestFullscreen) {
+                videoEl.requestFullscreen().catch(() => {
+                    modalEl.classList.toggle('fullscreen-video-mode');
+                });
+            } else if (videoEl.webkitRequestFullscreen) {
+                videoEl.webkitRequestFullscreen();
+            } else {
+                modalEl.classList.toggle('fullscreen-video-mode');
+            }
+        }
+
+        function closeVideoPlayerModal() {
+            const modalEl = document.getElementById('video-player-modal');
+            if (!modalEl || modalEl.classList.contains('hidden')) return;
+
+            const videoEl = document.getElementById('player-video-element');
+            if (videoEl) {
+                videoEl.pause();
+                videoEl.removeAttribute('src');
+            }
+            
+            modalEl.classList.remove('fullscreen-video-mode');
+            modalEl.classList.add('hidden');
+
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.BackButton) {
+                window.Telegram.WebApp.BackButton.hide();
+                window.Telegram.WebApp.BackButton.offClick(closeVideoPlayerModal);
+            }
+
+            const homeNavBtn = document.querySelectorAll('.nav-btn')[0];
+            switchTab('home', homeNavBtn);
+        }
+
+        function handleTelegramChannelClick() {
+            const channelUrl = officialChannelLink || "https://t.me";
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink && channelUrl.includes('t.me')) {
+                window.Telegram.WebApp.openTelegramLink(channelUrl);
+            } else {
+                window.open(channelUrl, '_blank');
+            }
+        }
+
+        window.addEventListener('popstate', function(e) {
+            const modalEl = document.getElementById('video-player-modal');
+            const adModalEl = document.getElementById('ad-modal');
+
+            if (modalEl && !modalEl.classList.contains('hidden')) {
+                closeVideoPlayerModal();
+            } else if (adModalEl && !adModalEl.classList.contains('hidden')) {
+                closeAdModal();
+            }
+        });
+
+        // =======================================================
+        // ⏱️ AD MODAL & INSTANT VERIFICATION
+        // =======================================================
+        function triggerAdModal(key) {
+            checkExpiryStatus();
+            activeAdKey = key;
+            activeStep = (progressMap[key] || 0) + 1;
+            
+            if (activeStep > 3) return;
+
+            updateModalUI();
+            document.getElementById('ad-warning-box').classList.add('hidden');
+            document.getElementById('ad-modal').classList.remove('hidden');
+        }
+
+        function updateModalUI() {
+            const banglaStep = ['১ম', '২য়', '৩য়'][activeStep - 1] || `${activeStep}ম`;
+            document.getElementById('modal-step-title').innerText = `${banglaStep} বিজ্ঞাপন দেখুন`;
+            document.getElementById('modal-btn-text').innerText = `এড ${activeStep}/৩`;
+
+            const dotsContainer = document.getElementById('modal-step-dots');
+            dotsContainer.innerHTML = '';
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.createElement('span');
+                if (i === activeStep) {
+                    dot.className = "w-3.5 h-3.5 rounded-full bg-red-500 ring-4 ring-red-500/20";
+                } else if (i < activeStep) {
+                    dot.className = "w-3 h-3 rounded-full bg-amber-500";
+                } else {
+                    dot.className = "w-3 h-3 rounded-full bg-gray-700";
+                }
+                dotsContainer.appendChild(dot);
+                
+                if (i < 3) {
+                    const line = document.createElement('span');
+                    line.className = `w-6 h-0.5 ${i < activeStep ? 'bg-amber-500' : 'bg-gray-700'}`;
+                    dotsContainer.appendChild(line);
+                }
+            }
+        }
+
+        function openAdLink() {
+            const now = Date.now();
+            localStorage.setItem('ad_start_time', now.toString());
+            localStorage.setItem('active_ad_key', activeAdKey);
+            localStorage.setItem('active_step', activeStep.toString());
+
+            document.getElementById('ad-warning-box')?.classList.add('hidden');
+
+            try {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                    window.Telegram.WebApp.openLink(ADSTERRA_DIRECT_LINK);
+                } else {
+                    window.open(ADSTERRA_DIRECT_LINK, '_blank');
+                }
+            } catch(e) {
+                window.open(ADSTERRA_DIRECT_LINK, '_blank');
+            }
+        }
+
+        function checkStayTimeAndVerify() {
+            const savedStartTime = localStorage.getItem('ad_start_time');
+            const savedKey = localStorage.getItem('active_ad_key');
+            const savedStep = parseInt(localStorage.getItem('active_step') || '1');
+
+            if (savedStartTime && savedKey) {
+                const startTime = parseInt(savedStartTime);
+                const timeSpent = (Date.now() - startTime) / 1000;
+
+                if (timeSpent >= REQUIRED_STAY_SECONDS) {
+                    localStorage.removeItem('ad_start_time');
+                    localStorage.removeItem('active_ad_key');
+                    localStorage.removeItem('active_step');
+
+                    progressMap[savedKey] = savedStep;
+                    localStorage.setItem('unlockProgress', JSON.stringify(progressMap));
+
+                    if (savedStep === 3) {
+                        unlockTimeMap[savedKey] = Date.now();
+                        localStorage.setItem('unlockTimeMap', JSON.stringify(unlockTimeMap));
+                    }
+
+                    document.getElementById('ad-warning-box')?.classList.add('hidden');
+                    closeAdModal();
+                    renderVideos();
+                    renderFavorites();
+                    updateProfileStats();
+                } else {
+                    activeAdKey = savedKey;
+                    activeStep = savedStep;
+
+                    updateModalUI();
+                    document.getElementById('ad-modal')?.classList.remove('hidden');
+                    document.getElementById('ad-warning-box')?.classList.remove('hidden');
+                }
+            }
+        }
+
+        window.addEventListener('focus', checkStayTimeAndVerify);
+        window.addEventListener('pageshow', checkStayTimeAndVerify);
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                checkStayTimeAndVerify();
+            }
+        });
+
+        function closeAdModal() {
+            document.getElementById('ad-modal').classList.add('hidden');
+        }
+
+        function toggleFavorite(key, event) {
+            if(event) event.stopPropagation();
+            const isFav = !!favoritesMap[key];
+            if(isFav) delete favoritesMap[key];
+            else favoritesMap[key] = true;
+            
+            localStorage.setItem('favVideos', JSON.stringify(favoritesMap));
+            database.ref('videos/' + key + '/likes').transaction((likes) => (isFav ? Math.max(0, (likes || 1) - 1) : (likes || 0) + 1));
+
+            renderVideos();
+            renderFavorites();
+            updateProfileStats();
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('favorites-container');
+            container.innerHTML = '';
+            const favKeys = Object.keys(favoritesMap).filter(k => rawVideos[k]);
+            if(favKeys.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-400 py-10 text-xs">ফেভারিট তালিকায় কোনো ভিডিও নেই।</p>`;
+                return;
+            }
+            favKeys.forEach(key => container.appendChild(createVideoCard(key, rawVideos[key])));
+        }
+
+        function copyMyReferralLink() {
+            const link = window.location.href;
+            navigator.clipboard.writeText(link);
+            alert("লিংক কপি করা হয়েছে!");
+        }
+
+        function shareAppLink() {
+            const link = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: 'Viral Video App', url: link });
+            } else if (window.Telegram?.WebApp?.openTelegramLink) {
+                window.Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}`);
+            } else {
+                copyMyReferralLink();
+            }
+        }
+
+        function updateProfileStats() {
+            document.getElementById('stat-favorites').innerText = Object.keys(favoritesMap).length;
+            document.getElementById('stat-unlocked').innerText = Object.values(progressMap).filter(val => val >= 3).length;
+            document.getElementById('stat-watched').innerText = localStorage.getItem('watchedCount') || 0;
+        }
+
+        function switchTab(tabName, btnElement) {
+            document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.replace('text-purple-600', 'text-gray-400'));
+            if(btnElement) btnElement.classList.replace('text-gray-400', 'text-purple-600');
+        }
+    </script>
+</body>
+</html>
