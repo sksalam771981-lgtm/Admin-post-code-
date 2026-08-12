@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamable Fast Video Dashboard</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 15px;
+            color: #333;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+        /* Header / Upload Box */
+        .upload-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .upload-card h2 { margin-top: 0; color: #1a1a1a; font-size: 20px; }
+        input[type="file"] { display: none; }
+        .file-label {
+            display: block;
+            background: #f8f9fa;
+            border: 2px dashed #0066ff;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #0066ff;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .file-info {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 12px;
+            display: none;
+            background: #eef5ff;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .btn-upload {
+            background-color: #0066ff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+        .btn-upload:hover { background-color: #0052cc; }
+        
+        /* Progress Bar */
+        .progress-bar-container {
+            width: 100%;
+            background: #e5e7eb;
+            height: 14px;
+            border-radius: 7px;
+            overflow: hidden;
+            margin-top: 15px;
+            display: none;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066ff, #00c6ff);
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        #status {
+            margin-top: 12px;
+            font-weight: bold;
+            color: #0066ff;
+            font-size: 14px;
+        }
+
+        /* Streamable Dashboard Style */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .dashboard-header h3 { margin: 0; font-size: 18px; color: #222; }
+
+        /* Video Card Item */
+        .video-card {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+        .video-preview-container {
+            position: relative;
+            background: #000;
+            width: 100%;
+            max-height: 320px;
+        }
+        video {
+            width: 100%;
+            max-height: 320px;
+            display: block;
+        }
+        .card-body { padding: 15px; }
+        .video-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin: 0 0 10px 0;
+            color: #111;
+            word-break: break-word;
+        }
+        .link-row {
+            display: flex;
+            align-items: center;
+            background: #f3f4f6;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        .link-text {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #0066ff;
+            text-decoration: none;
+        }
+        .btn-copy {
+            background: none;
+            border: none;
+            color: #555;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .btn-copy:hover { background: #e5e7eb; }
+
+        /* Actions Row */
+        .actions-row {
+            display: flex;
+            gap: 10px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+        .action-btn {
+            flex: 1;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: #444;
+            font-weight: 500;
+        }
+        .action-btn:hover { background: #e9ecef; }
+        .action-btn.delete {
+            color: #dc3545;
+            border-color: #f8d7da;
+            background: #fff5f5;
+        }
+        .action-btn.delete:hover { background: #ffe3e3; }
+
+        /* Hidden Embed Box */
+        .embed-box {
+            display: none;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 55px;
+            font-size: 11px;
+            font-family: monospace;
+            padding: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- আপলোড বক্স -->
+    <div class="upload-card">
+        <h2>⚡ ফাস্ট ভিডিও আপলোডার</h2>
+        <label for="videoInput" class="file-label" id="fileLabel">📁 মোবাইল থেকে ভিডিও বেছে নিন</label>
+        <input type="file" id="videoInput" accept="video/*" onchange="updateFileInfo()">
+        
+        <!-- সাইজ দেখানোর বক্স -->
+        <div class="file-info" id="fileInfo"></div>
+
+        <button class="btn-upload" onclick="uploadVideo()">আপলোড শুরু করুন</button>
+        
+        <!-- প্রোগ্রেস বার -->
+        <div class="progress-bar-container" id="progressBar">
+            <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <!-- ড্যাশবোর্ড -->
+    <div class="dashboard-header">
+        <h3 id="videoCountText">All videos (0)</h3>
+    </div>
+
+    <!-- আপলোড করা সব ভিডিও এখানে জমা হবে -->
+    <div id="videoList"></div>
+
+</div>
+
+<script>
+    const cloudName = "ie3bofhp"; 
+    const uploadPreset = "my_video_upload"; 
+
+    document.addEventListener('DOMContentLoaded', loadVideos);
+
+    function updateFileInfo() {
+        const input = document.getElementById('videoInput');
+        const label = document.getElementById('fileLabel');
+        const info = document.getElementById('fileInfo');
+
+        if (input.files.length > 0) {
+            const file = input.files[0];
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            label.innerText = `✅ নির্বাচিত: ${file.name}`;
+            info.innerHTML = `📊 ভিডিও সাইজ: <strong>${sizeMB} MB</strong>`;
+            info.style.display = 'block';
+        }
+    }
+
+    function uploadVideo() {
+        const fileInput = document.getElementById('videoInput');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert('অনুগ্রহ করে একটি ভিডিও ফাইল সিলেক্ট করুন!');
+            return;
+        }
+
+        const totalMB = (file.size / (1024 * 1024)).toFixed(2);
+        const statusDiv = document.getElementById('status');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+
+        progressBar.style.display = 'block';
+        progressFill.style.width = '0%';
+        statusDiv.innerText = `⚡ আপলোড শুরু হচ্ছে...`;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', uploadPreset);
+
+        // High Speed XMLHttpRequest
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, true);
+
+        // লাইভ প্রোগ্রেস ও সাইজ ট্র্যাকিং
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const loadedMB = (e.loaded / (1024 * 1024)).toFixed(2);
+                const percent = Math.round((e.loaded / e.total) * 100);
+                
+                progressFill.style.width = percent + '%';
+                statusDiv.innerText = `⏳ আপলোড হচ্ছে: ${loadedMB} MB / ${totalMB} MB (${percent}%)`;
+            }
+        };
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const data = JSON.parse(xhr.responseText);
+                statusDiv.innerText = '✅ ভিডিও সফলভাবে আপলোড হয়েছে!';
+
+                const newVideo = {
+                    id: Date.now(),
+                    name: file.name,
+                    url: data.secure_url,
+                    size: totalMB,
+                    date: new Date().toLocaleDateString('bn-BD', { month: 'short', day: 'numeric', year: 'numeric' })
+                };
+
+                saveVideoToStorage(newVideo);
+                loadVideos();
+
+                // রিসেট ফর্ম
+                fileInput.value = '';
+                document.getElementById('fileLabel').innerText = '📁 মোবাইল থেকে ভিডিও বেছে নিন';
+                document.getElementById('fileInfo').style.display = 'none';
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    statusDiv.innerText = '';
+                }, 3000);
+            } else {
+                statusDiv.innerText = '❌ আপলোড ব্যর্থ হয়েছে! Unsigned Preset ঠিক আছে কিনা চেক করুন।';
+            }
+        };
+
+        xhr.onerror = function() {
+            statusDiv.innerText = '❌ নেটওয়ার্ক ট্রুটি! ইন্টারনেট কানেকশন চেক করুন।';
+        };
+
+        xhr.send(formData);
+    }
+
+    function saveVideoToStorage(video) {
+        let videos = JSON.parse(localStorage.getItem('my_streamable_videos') || '[]');
+        videos.unshift(video);
+        localStorage.setItem('my_streamable_videos', JSON.stringify(videos));
+    }
+
+    function loadVideos() {
+        let videos = JSON.parse(localStorage.getItem('my_streamable_videos') || '[]');
+        const videoListDiv = document.getElementById('videoList');
+        const countText = document.getElementById('videoCountText');
+
+        countText.innerText = `All videos (${videos.length})`;
+        videoListDiv.innerHTML = '';
+
+        if (videos.length === 0) {
+            videoListDiv.innerHTML = '<p style="text-align:center; color:#777;">এখনো কোনো ভিডিও আপলোড করা হয়নি।</p>';
+            return;
+        }
+
+        videos.forEach((vid, index) => {
+            const videoTagHTML = `<video width="100%" controls>\n  <source src="${vid.url}" type="video/mp4">\n</video>`;
+            const iframeHTML = `<iframe src="${vid.url}" width="100%" height="360" frameborder="0" allowfullscreen></iframe>`;
+
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.innerHTML = `
+                <div class="video-preview-container">
+                    <video controls preload="metadata">
+                        <source src="${vid.url}" type="video/mp4">
+                    </video>
+                </div>
+                <div class="card-body">
+                    <h4 class="video-title">${vid.name} ${vid.size ? `<span style="font-size:12px; color:#666; font-weight:normal;">(${vid.size} MB)</span>` : ''}</h4>
+                    
+                    <div class="link-row">
+                        <a href="${vid.url}" target="_blank" class="link-text">${vid.url}</a>
+                        <button class="btn-copy" onclick="copyToClipboard('${vid.url}')">🔗 Copy Link</button>
+                    </div>
+
+                    <div class="actions-row">
+                        <button class="action-btn" onclick="toggleEmbed(${index})">
+                            &lt;/&gt; Embed
+                        </button>
+                        <button class="action-btn delete" onclick="deleteVideo(${vid.id})">
+                            🗑️ Delete
+                        </button>
+                    </div>
+
+                    <div class="embed-box" id="embedBox_${index}">
+                        <label style="font-size:11px; font-weight:bold;">১. HTML Video Tag:</label>
+                        <textarea readonly>${videoTagHTML}</textarea>
+                        
+                        <label style="font-size:11px; font-weight:bold; margin-top:5px; display:block;">২. iFrame Embed Code:</label>
+                        <textarea readonly>${iframeHTML}</textarea>
+                    </div>
+                </div>
+            `;
+            videoListDiv.appendChild(card);
+        });
+    }
+
+    function toggleEmbed(index) {
+        const box = document.getElementById(`embedBox_${index}`);
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function deleteVideo(id) {
+        if (confirm('আপনি কি সত্যিই এই ভিডিওটি ডিলিট করতে চান?')) {
+            let videos = JSON.parse(localStorage.getItem('my_streamable_videos') || '[]');
+            videos = videos.filter(v => v.id !== id);
+            localStorage.setItem('my_streamable_videos', JSON.stringify(videos));
+            loadVideos();
+        }
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        alert('লিঙ্ক কপি করা হয়েছে!');
+    }
+</script>
+
+</body>
+</html>
