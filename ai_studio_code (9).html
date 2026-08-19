@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ভিডিও গাইড - কীভাবে সহজে দেখবেন</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hind Siliguri', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #070b14;
+            color: #f8fafc;
+            min-height: 100vh;
+            padding: 20px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 650px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* হেডার */
+        .header {
+            text-align: center;
+            margin: 15px 0 25px;
+        }
+
+        .header h1 {
+            font-size: 25px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 14.5px;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        /* টিউটোরিয়াল বক্স */
+        .tutorial-box {
+            background: #151e2e;
+            border: 1px solid #334155;
+            border-radius: 22px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .box-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .box-badge {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .badge-viral { background: #dc2626; color: #fff; }
+        .badge-mini { background: #059669; color: #fff; }
+        .badge-movie { background: #2563eb; color: #fff; }
+
+        .box-desc {
+            font-size: 13.5px;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        /* বড় ও এইচডি ভিডিও প্লেয়ার */
+        .video-player-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            min-height: 240px;
+            background: #000000;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1.5px solid #475569;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+        }
+
+        .video-player-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            background: #000;
+        }
+
+        /* বাটন গ্রিড */
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 10px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            color: #ffffff;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn-action:active {
+            transform: scale(0.97);
+        }
+
+        .btn-site {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+        }
+
+        .btn-tg {
+            background: linear-gradient(135deg, #0088cc, #006699);
+            box-shadow: 0 4px 12px rgba(0, 136, 204, 0.35);
+        }
+
+        .btn-svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* টেলিগ্রাম চ্যানেল বক্স (নিচে আনা হয়েছে) */
+        .bottom-telegram-box {
+            background: linear-gradient(135deg, #0f2744, #1e293b);
+            border: 1.5px solid #38bdf8;
+            border-radius: 18px;
+            padding: 18px;
+            text-align: center;
+            margin: 10px 0 22px;
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
+        }
+
+        .telegram-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #38bdf8;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .btn-main-telegram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15.5px;
+            color: white;
+            background: linear-gradient(135deg, #0088cc, #006699);
+            box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
+            transition: transform 0.15s;
+        }
+
+        .btn-main-telegram:active {
+            transform: scale(0.98);
+        }
+
+        /* শেয়ার সেকশন */
+        .share-card {
+            background: #151e2e;
+            border: 1px solid #6366f1;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        .share-title {
+            font-size: 14.5px;
+            color: #c7d2fe;
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+
+        .share-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-share {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 12px 8px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .share-wa { background: #25d366; }
+        .share-tg { background: #0088cc; }
+        .share-cp { background: #4f46e5; }
+
+        /* কপি নোটিফিকেশন টোস্ট */
+        #copyToast {
+            display: none;
+            position: fixed;
+            bottom: 25px;
+            background: #10b981;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- হেডার -->
+        <div class="header">
+            <h1>🎬 ভিডিও দেখার সম্পূর্ণ টিউটোরিয়াল</h1>
+            <p>নিচের ভিডিওগুলো দেখে খুব সহজে টেলিগ্রাম ও ওয়েবসাইট থেকে ভিডিও প্লে করুন</p>
+        </div>
+
+        <!-- ১. ভাইরাল ভিডিও টিউটোরিয়াল বক্স (আপনার লিংক যুক্ত) -->
+        <div class="tutorial-box">
+            <div class="box-header">
+                <div class="box-title">🔥 ভাইরাল ভিডিও টিউটোরিয়াল</div>
+                <span class="box-badge badge-viral">Trending Video</span>
+            </div>
+            <p class="box-desc">টেলিগ্রাম থেকে কীভাবে এক ক্লিকে ভাইরাল ভিডিও দেখবেন তা নিচের ভিডিওতে দেখুন:</p>
+            
+            <!-- আপনার দেওয়া লাইভ ভিডিও প্লেয়ার -->
+            <div class="video-player-wrapper">
+                <video controls playsinline preload="metadata">
+                    <source src="https://files.catbox.moe/3i9lzh.mp4" type="video/mp4">
+                    আপনার ব্রাউজারে ভিডিও প্লেয়ার সাপোর্ট করছে না।
+                </video>
+            </div>
+
+            <!-- বাটনসমূহ -->
+            <div class="buttons-grid">
+                <a href="https://premium-video-collection.blogspot.com" target="_blank" rel="noopener noreferrer" class="btn-action btn-site">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    সরাসরি সাইট
+                </a>
+                <a href="https://t.me/addlist/fZd2jngRvWtjOWU1" target="_blank" rel="noopener noreferrer" class="btn-action btn-tg">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    টেলিগ্রাম চ্যানেল
+                </a>
+            </div>
+        </div>
+
+        <!-- ২. মিনি অ্যাপস টিউটোরিয়াল বক্স (পরবর্তীতে লিংক বসানোর জন্য খালি) -->
+        <div class="tutorial-box">
+            <div class="box-header">
+                <div class="box-title">⚡ মিনি অ্যাপস টিউটোরিয়াল</div>
+                <span class="box-badge badge-mini">Fast Lite App</span>
+            </div>
+            <p class="box-desc">টেলিগ্রাম বট ও মিনি অ্যাপ ব্যবহার করে ফাস্ট স্পিডে ভিডিও দেখার নিয়ম:</p>
+            
+            <!-- খালি ভিডিও প্লেয়ার (পরবর্তীতে লিংক বসাবেন) -->
+            <div class="video-player-wrapper">
+                <video controls playsinline preload="metadata">
+                    <!-- 👉 নিচে আপনার ২নং ভিডিও লিংক বসিয়ে দেবেন 👈 -->
+                    <source src="" type="video/mp4">
+                    আপনার ব্রাউজারে ভিডিও প্লেয়ার সাপোর্ট করছে না।
+                </video>
+            </div>
+
+            <!-- বাটনসমূহ -->
+            <div class="buttons-grid">
+                <a href="https://t.me/WorldViralVideoCollection_bot/tiktokviralvideo" target="_blank" rel="noopener noreferrer" class="btn-action btn-site">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    মিনি বট সাইট
+                </a>
+                <a href="https://t.me/addlist/fZd2jngRvWtjOWU1" target="_blank" rel="noopener noreferrer" class="btn-action btn-tg">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    টেলিগ্রাম চ্যানেল
+                </a>
+            </div>
+        </div>
+
+        <!-- ৩. মুভি ও নাটক টিউটোরিয়াল বক্স (পরবর্তীতে লিংক বসানোর জন্য খালি) -->
+        <div class="tutorial-box">
+            <div class="box-header">
+                <div class="box-title">🎬 মুভি ও নাটক টিউটোরিয়াল</div>
+                <span class="box-badge badge-movie">Movie & Natok</span>
+            </div>
+            <p class="box-desc">নতুন সব নাটক ও সিনেমা সরাসরি বাফারিং ছাড়া দেখার নিয়ম:</p>
+            
+            <!-- খালি ভিডিও প্লেয়ার (পরবর্তীতে লিংক বসাবেন) -->
+            <div class="video-player-wrapper">
+                <video controls playsinline preload="metadata">
+                    <!-- 👉 নিচে আপনার ৩নং ভিডিও লিংক বসিয়ে দেবেন 👈 -->
+                    <source src="" type="video/mp4">
+                    আপনার ব্রাউজারে ভিডিও প্লেয়ার সাপোর্ট করছে না।
+                </video>
+            </div>
+
+            <!-- বাটনসমূহ -->
+            <div class="buttons-grid">
+                <a href="https://skmovie720.blogspot.com" target="_blank" rel="noopener noreferrer" class="btn-action btn-site">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    মুভি সাইট
+                </a>
+                <a href="https://t.me/addlist/fZd2jngRvWtjOWU1" target="_blank" rel="noopener noreferrer" class="btn-action btn-tg">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    টেলিগ্রাম চ্যানেল
+                </a>
+            </div>
+        </div>
+
+        <!-- ৪. প্রধান টেলিগ্রাম চ্যানেল বক্স (৩টি বক্সের ঠিক নিচে) -->
+        <div class="bottom-telegram-box">
+            <span class="telegram-label">📢 প্রতিদিনের সকল নতুন আপডেট পেতে আমাদের সাথে যুক্ত থাকুন:</span>
+            <a href="https://t.me/addlist/fZd2jngRvWtjOWU1" target="_blank" rel="noopener noreferrer" class="btn-main-telegram">
+                <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                অফিসিয়াল টেলিগ্রাম চ্যানেলে জয়েন করুন
+            </a>
+        </div>
+
+        <!-- ৫. শেয়ার সেকশন (সবার নিচে) -->
+        <div class="share-card">
+            <div class="share-title">📢 বন্ধুদের সাথে টিউটোরিয়াল পেজটি শেয়ার করুন:</div>
+            <div class="share-buttons">
+                <!-- হোয়াটসঅ্যাপ -->
+                <button onclick="shareWhatsApp()" class="btn-share share-wa">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 012.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 01-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.53c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.79.98-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43s-.56-1.34-.76-1.84c-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.84-.86 2.05s.88 2.38 1 2.55c.12.17 1.74 2.66 4.21 3.73.59.25 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.23-.18-.48-.3z"/></svg>
+                    WhatsApp
+                </button>
+                <!-- টেলিগ্রাম -->
+                <button onclick="shareTelegram()" class="btn-share share-tg">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    Telegram
+                </button>
+                <!-- কপি লিংক -->
+                <button onclick="copyPageLink()" class="btn-share share-cp">
+                    <svg class="btn-svg" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    কপি লিংক
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- কপি নোটিফিকেশন টোস্ট -->
+    <div id="copyToast">✅ লিংক কপি হয়েছে!</div>
+
+    <script>
+        function getShareText() {
+            return "🎬 ভিডিও দেখার সম্পূর্ণ টিউটোরিয়াল ও সাইট লিংক: " + window.location.href;
+        }
+
+        function shareWhatsApp() {
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(getShareText()), '_blank');
+        }
+
+        function shareTelegram() {
+            window.open("https://t.me/share/url?url=" + encodeURIComponent(window.location.href) + "&text=" + encodeURIComponent("🎬 ভিডিও দেখার সম্পূর্ণ টিউটোরিয়াল ও সাইট কালেকশন!"), '_blank');
+        }
+
+        function copyPageLink() {
+            var url = window.location.href;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(showToast);
+            } else {
+                var inp = document.createElement("input");
+                inp.value = url;
+                document.body.appendChild(inp);
+                inp.select();
+                document.execCommand("copy");
+                document.body.removeChild(inp);
+                showToast();
+            }
+        }
+
+        function showToast() {
+            var toast = document.getElementById("copyToast");
+            toast.style.display = "block";
+            setTimeout(function() {
+                toast.style.display = "none";
+            }, 2000);
+        }
+    </script>
+
+</body>
+</html>
