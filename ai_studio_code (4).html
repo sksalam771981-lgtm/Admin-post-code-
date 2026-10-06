@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
+    <title>TELEGRAM & FIREBASE MEDIA ENGINE</title>
+    
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        * { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-grotesk { font-family: 'Space Grotesk', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+
+        .glass-card {
+            background: linear-gradient(165deg, rgba(20, 26, 48, 0.92) 0%, rgba(9, 12, 25, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card:active {
+            transform: scale(0.97);
+            border-color: #38bdf8;
+        }
+
+        .glow-icon {
+            box-shadow: 0 8px 24px -4px rgba(56, 189, 248, 0.3);
+        }
+
+        #custom-toast {
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(-120%);
+            opacity: 0;
+        }
+        #custom-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #060812; }
+        ::-webkit-scrollbar-thumb { background: #1e2646; border-radius: 99px; }
+    </style>
+</head>
+<body class="bg-[#050711] text-slate-100 min-h-screen pb-24 selection:bg-cyan-500 selection:text-black">
+
+    <!-- ইন-অ্যাপ নোটিফিকেশন টোস্ট -->
+    <div id="custom-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm glass-card border border-cyan-500/30 p-3.5 rounded-2xl flex items-center gap-3 shadow-2xl pointer-events-none">
+        <div id="toast-icon-box" class="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 text-sm">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p id="toast-title" class="text-xs font-bold text-white leading-tight">নোটিফিকেশন</p>
+            <p id="toast-message" class="text-[11px] text-slate-400 truncate">কাজ সম্পন্ন হয়েছে</p>
+        </div>
+    </div>
+
+    <!-- হেডবার -->
+    <header class="px-5 py-4 border-b border-slate-900/80 bg-[#070a18]/90 backdrop-blur-xl sticky top-0 z-40">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-fuchsia-600 flex items-center justify-center text-white text-lg shadow-lg shadow-cyan-500/25 glow-icon">
+                    <i class="fa-brands fa-telegram"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-black font-grotesk tracking-wider uppercase bg-gradient-to-r from-white via-slate-100 to-cyan-400 bg-clip-text text-transparent">
+                        TELEGRAM & FIREBASE
+                    </h1>
+                    <p class="text-[10px] text-emerald-400 font-poppins font-medium tracking-wide flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> inkam-342f4 • Auto Sync
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openBox('box-firebase')" class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-400 text-amber-400 flex items-center justify-center text-sm transition" title="ফায়ারবেস ডাটাবেস">
+                    <i class="fa-solid fa-database"></i>
+                </button>
+                <button onclick="openBox('box-all-settings')" class="w-9 h-9 rounded-xl bg-[#0f1429] border border-slate-800 hover:border-cyan-500/50 text-slate-300 hover:text-cyan-400 flex items-center justify-center text-sm transition" title="টেলিগ্রাম ও সার্ভার সেটিংস">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- মূল কন্টেইনার (হোম স্ক্রিন) -->
+    <main class="max-w-md md:max-w-xl mx-auto p-4 space-y-6 pt-5">
+
+        <div id="main-grid" class="space-y-3.5">
+
+            <div class="grid grid-cols-2 gap-3.5">
+                <!-- কার্ড ১: টেলিগ্রাম ফটো আপলোড -->
+                <div onclick="openBox('box-tg-photo')" class="glass-card rounded-[26px] p-5 flex flex-col items-center text-center cursor-pointer group">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-b from-cyan-500/15 to-transparent border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-2xl mb-3 group-hover:scale-105 transition shadow-lg shadow-cyan-500/10">
+                        <i class="fa-solid fa-camera-retro"></i>
+                    </div>
+                    <h2 class="text-sm font-bold text-white mb-0.5">টেলিগ্রাম ফটো</h2>
+                    <p id="grid-tg-photo-count" class="text-[11px] text-cyan-400 font-poppins">০টি ছবি সেভড</p>
+                </div>
+
+                <!-- কার্ড ২: টেলিগ্রাম ভিডিও আপলোড -->
+                <div onclick="openBox('box-tg-video')" class="glass-card rounded-[26px] p-5 flex flex-col items-center text-center cursor-pointer group">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-b from-sky-500/15 to-transparent border border-sky-500/30 flex items-center justify-center text-sky-400 text-2xl mb-3 group-hover:scale-105 transition shadow-lg shadow-sky-500/10">
+                        <i class="fa-solid fa-play"></i>
+                    </div>
+                    <h2 class="text-sm font-bold text-white mb-0.5">টেলিগ্রাম ভিডিও</h2>
+                    <p id="grid-tg-video-count" class="text-[11px] text-sky-400 font-poppins">০টি ভিডিও সেভড</p>
+                </div>
+            </div>
+
+            <!-- কার্ড ৩: Firebase ডাটাবেস সেভার -->
+            <div onclick="openBox('box-firebase')" class="glass-card rounded-[26px] p-4 flex items-center justify-between cursor-pointer group px-6">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-b from-amber-500/15 to-transparent border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl group-hover:scale-105 transition shadow-lg shadow-amber-500/10">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-sm font-bold text-white">Firebase ডাটাবেস সেভার</h2>
+                        <p class="text-[11px] text-amber-400 font-poppins">inkam-342f4 পোস্ট ও লিংক যুক্ত করুন</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>
+            </div>
+
+            <!-- কার্ড ৪: টেলিগ্রাম ও Worker সেটিংস -->
+            <div onclick="openBox('box-all-settings')" class="glass-card rounded-[26px] p-4 flex items-center justify-between cursor-pointer group px-6">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-b from-purple-500/15 to-transparent border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl group-hover:scale-105 transition shadow-lg shadow-purple-500/10">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-sm font-bold text-white">টেলিগ্রাম বট ও Worker সেটিংস</h2>
+                        <p class="text-[11px] text-purple-400 font-poppins">Bot Token, Chat ID ও Worker URL</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>
+            </div>
+
+        </div>
+
+        <!-- ========================================================
+             ১. টেলিগ্রাম ফটো সেকশন (অটো-সিঙ্ক)
+        ========================================================= -->
+        <div id="box-tg-photo" class="hidden glass-card rounded-3xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <button onclick="closeBoxes()" class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-camera-retro text-cyan-400"></i> টেলিগ্রাম ফটো
+                    </h3>
+                </div>
+                <span id="tg-photo-badge" class="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-poppins px-2.5 py-0.5 rounded-full font-semibold">০ টি ছবি</span>
+            </div>
+
+            <div class="p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl text-center">
+                <p class="text-[11px] text-cyan-300 font-semibold leading-relaxed">
+                    💡 টেলিগ্রাম বটে ছবি পাঠালে বা ফরওয়ার্ড করলেও নিচে স্বয়ংক্রিয়ভাবে চলে আসবে!
+                </p>
+            </div>
+
+            <div>
+                <label for="tg-photo-input" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-95 text-white text-xs font-bold py-3.5 px-4 rounded-2xl cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-cyan-600/25 transition">
+                    <i class="fa-solid fa-camera text-sm"></i> গ্যালারি থেকে ছবি আপলোড করুন
+                </label>
+                <input type="file" id="tg-photo-input" accept="image/*" class="hidden" onchange="uploadTelegramFile(this, 'photo')">
+            </div>
+
+            <div id="tg-photo-progress-box" class="hidden space-y-2 bg-[#060815] p-3 rounded-2xl border border-slate-800 text-xs font-poppins">
+                <div class="flex justify-between">
+                    <span id="tg-photo-metric" class="text-slate-400">0 KB / 0 KB</span>
+                    <span id="tg-photo-percent" class="text-cyan-400 font-bold">0%</span>
+                </div>
+                <div class="w-full bg-slate-800/70 h-1.5 rounded-full overflow-hidden">
+                    <div id="tg-photo-bar" class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full w-0 transition-all duration-75"></div>
+                </div>
+                <div class="flex justify-between text-[11px] text-slate-400">
+                    <span id="tg-photo-speed"><i class="fa-solid fa-bolt text-amber-400"></i> 0 KB/s</span>
+                    <span id="tg-photo-eta"><i class="fa-regular fa-clock"></i> বাকি: --</span>
+                </div>
+            </div>
+
+            <div class="space-y-2 pt-1">
+                <p class="text-xs font-bold text-slate-400">টেলিগ্রাম ফটোগুলো (ডিলিট করলে ইনবক্স থেকেও মুছে যাবে):</p>
+                <div id="tg-photo-list" class="space-y-2.5 max-h-[400px] overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             ২. টেলিগ্রাম ভিডিও সেকশন (অটো-সিঙ্ক)
+        ========================================================= -->
+        <div id="box-tg-video" class="hidden glass-card rounded-3xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <button onclick="closeBoxes()" class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                        <i class="fa-brands fa-telegram text-sky-400"></i> টেলিগ্রাম ভিডিও
+                    </h3>
+                </div>
+                <span id="tg-video-badge" class="text-[10px] bg-sky-500/10 text-sky-400 border border-sky-500/20 font-poppins px-2.5 py-0.5 rounded-full font-semibold">০ টি ভিডিও</span>
+            </div>
+
+            <div class="p-3 bg-sky-500/10 border border-sky-500/30 rounded-2xl text-center">
+                <p class="text-[11px] text-sky-300 font-semibold leading-relaxed">
+                    💡 টেলিগ্রাম বটে যেকোনো ভিডিও পাঠালে বা ফরওয়ার্ড করলে সরাসরি নিচে প্লেয়ার সহ চলে আসবে!
+                </p>
+            </div>
+
+            <div>
+                <label for="tg-video-input" class="w-full bg-gradient-to-r from-sky-600 to-indigo-600 hover:opacity-95 text-white text-xs font-bold py-3.5 px-4 rounded-2xl cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-sky-600/25 transition">
+                    <i class="fa-solid fa-play text-sm"></i> গ্যালারি থেকে ভিডিও আপলোড করুন
+                </label>
+                <input type="file" id="tg-video-input" accept="video/*" class="hidden" onchange="uploadTelegramFile(this, 'video')">
+            </div>
+
+            <div id="tg-video-progress-box" class="hidden space-y-2 bg-[#060815] p-3 rounded-2xl border border-slate-800 text-xs font-poppins">
+                <div class="flex justify-between">
+                    <span id="tg-video-metric" class="text-slate-400">0 MB / 0 MB</span>
+                    <span id="tg-video-percent" class="text-sky-400 font-bold">0%</span>
+                </div>
+                <div class="w-full bg-slate-800/70 h-1.5 rounded-full overflow-hidden">
+                    <div id="tg-video-bar" class="bg-gradient-to-r from-sky-500 to-indigo-500 h-full w-0 transition-all duration-75"></div>
+                </div>
+                <div class="flex justify-between text-[11px] text-slate-400">
+                    <span id="tg-video-speed"><i class="fa-solid fa-bolt text-amber-400"></i> 0 KB/s</span>
+                    <span id="tg-video-eta"><i class="fa-regular fa-clock"></i> বাকি: --</span>
+                </div>
+            </div>
+
+            <div class="space-y-2 pt-1">
+                <p class="text-xs font-bold text-slate-400">টেলিগ্রাম ভিডিও সমূহ (ডিলিট করলে ইনবক্স থেকেও মুছে যাবে):</p>
+                <div id="tg-video-list" class="space-y-3 max-h-[460px] overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             ৩. Firebase ডেটাবেস সেভার সেকশন
+        ========================================================= -->
+        <div id="box-firebase" class="hidden glass-card rounded-3xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <button onclick="closeBoxes()" class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-database text-amber-400"></i> Firebase ডেটাবেস সেভার
+                    </h3>
+                </div>
+                <span class="text-[10px] text-amber-400 font-poppins bg-amber-500/10 px-2.5 py-0.5 rounded-md font-semibold">inkam-342f4</span>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[11px] text-slate-300 font-semibold block mb-1">ভিডিও টাইটেল:</label>
+                    <input type="text" id="firebase-post-title" placeholder="পোস্টের নাম বা টাইটেল লিখুন..." class="w-full bg-[#04060f] border border-slate-800 focus:border-amber-500 p-2.5 rounded-xl text-xs text-white outline-none transition">
+                </div>
+                <div>
+                    <label class="text-[11px] text-slate-300 font-semibold block mb-1">থাম্বনেইল / ইমেজ URL:</label>
+                    <input type="text" id="firebase-thumb-input" placeholder="https://..." class="w-full bg-[#04060f] border border-slate-800 focus:border-pink-500 p-2.5 rounded-xl text-xs text-pink-400 font-poppins outline-none transition">
+                </div>
+                <div>
+                    <label class="text-[11px] text-slate-300 font-semibold block mb-1">ভিডিও URL:</label>
+                    <input type="text" id="firebase-video-input" placeholder="https://..." class="w-full bg-[#04060f] border border-slate-800 focus:border-cyan-500 p-2.5 rounded-xl text-xs text-cyan-400 font-poppins outline-none transition">
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                    <button onclick="saveDataToFirebase()" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:opacity-95 text-white text-xs font-bold py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> ডেটাবেসে সেভ করুন
+                    </button>
+                    <button onclick="clearFirebaseInputs()" class="bg-slate-800 hover:bg-rose-600/30 text-rose-400 px-3.5 py-3 rounded-xl text-xs font-bold transition" title="ইনপুট ক্লিয়ার করুন">
+                        <i class="fa-solid fa-eraser"></i>
+                    </button>
+                </div>
+                <p id="firebase-status-msg" class="text-xs text-center font-bold hidden"></p>
+            </div>
+        </div>
+
+        <!-- ========================================================
+             ৪. টেলিগ্রাম ও Worker সেটিংস
+        ========================================================= -->
+        <div id="box-all-settings" class="hidden glass-card rounded-3xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <button onclick="closeBoxes()" class="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-sliders text-amber-400"></i> সার্ভার ও টেলিগ্রাম সেটিংস
+                    </h3>
+                </div>
+                <button onclick="resetDefaults()" class="text-[11px] text-slate-400 hover:text-rose-400 underline">ডিফল্ট</button>
+            </div>
+
+            <div class="space-y-3.5">
+                <!-- Telegram Worker URL -->
+                <div class="p-3 bg-[#070a1a] border border-cyan-500/20 rounded-2xl space-y-1">
+                    <label class="text-[11px] text-cyan-400 font-semibold flex items-center justify-between">
+                        <span>Cloudflare Worker URL:</span>
+                        <span class="text-[9px] text-emerald-400">নতুন Worker যুক্ত</span>
+                    </label>
+                    <input type="text" id="setting-telegram-worker" placeholder="https://jolly-water-2963.sksalamss6530.workers.dev" class="w-full bg-[#04060f] border border-slate-800 focus:border-cyan-500 p-2.5 rounded-xl text-xs text-cyan-300 font-poppins outline-none transition">
+                </div>
+
+                <!-- Telegram Bot Token -->
+                <div class="p-3 bg-[#070a1a] border border-sky-500/20 rounded-2xl space-y-1">
+                    <label class="text-[11px] text-sky-400 font-semibold block">
+                        Telegram Bot Token:
+                    </label>
+                    <input type="text" id="setting-bot-token" class="w-full bg-[#04060f] border border-slate-800 focus:border-sky-500 p-2.5 rounded-xl text-xs text-sky-300 font-poppins outline-none transition">
+                </div>
+
+                <!-- Telegram Chat ID -->
+                <div class="p-3 bg-[#070a1a] border border-sky-500/20 rounded-2xl space-y-1">
+                    <label class="text-[11px] text-pink-400 font-semibold block">
+                        Telegram Chat ID (আপনার আইডি):
+                    </label>
+                    <input type="text" id="setting-chat-id" class="w-full bg-[#04060f] border border-slate-800 focus:border-pink-500 p-2.5 rounded-xl text-xs text-pink-300 font-poppins outline-none transition">
+                </div>
+
+                <button onclick="saveAllApiKeys()" class="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:opacity-95 text-white font-bold py-3.5 rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-circle"></i> সমস্ত সেটিংস সংরক্ষণ করুন
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- জাভাস্ক্রিপ্ট ইঞ্জিন -->
+    <script>
+        // ১. Firebase কনফিগারেশন (inkam-342f4)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKX_zPy3ZUMVLIY0Hlla1w3izsvAKDKVw",
+            authDomain: "inkam-342f4.firebaseapp.com",
+            databaseURL: "https://inkam-342f4-default-rtdb.firebaseio.com",
+            projectId: "inkam-342f4",
+            storageBucket: "inkam-342f4.firebasestorage.app",
+            messagingSenderId: "274696441209",
+            appId: "1:274696441209:web:80cdfba710d32129dfb3a8",
+            measurementId: "G-C1ZS6G9NVR"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // আপনার নতুন Worker URL ডিফল্ট হিসেবে সেট করা হলো
+        const DEFAULT_TG_WORKER = "https://jolly-water-2963.sksalamss6530.workers.dev";
+        const DEFAULT_TOKEN = "8743961700:AAEFRu774zqYIGSolrXw0yjX0gb6FpYNqgo";
+        const DEFAULT_CHAT_ID = "8672369316";
+
+        function getTelegramWorkerUrl() { 
+            let url = (localStorage.getItem('app_tg_worker') || DEFAULT_TG_WORKER).trim().replace(/\/+$/, '');
+            if (url && !url.startsWith('http')) url = 'https://' + url;
+            return url;
+        }
+
+        function getBotToken() { return (localStorage.getItem('app_bot_token') || DEFAULT_TOKEN).trim(); }
+        function getChatId() { return (localStorage.getItem('app_chat_id') || DEFAULT_CHAT_ID).trim(); }
+
+        function loadSettingsInputs() {
+            document.getElementById('setting-telegram-worker').value = getTelegramWorkerUrl();
+            document.getElementById('setting-bot-token').value = getBotToken();
+            document.getElementById('setting-chat-id').value = getChatId();
+        }
+        loadSettingsInputs();
+
+        function saveAllApiKeys() {
+            const tgWkr = document.getElementById('setting-telegram-worker').value.trim();
+            const token = document.getElementById('setting-bot-token').value.trim();
+            const chat = document.getElementById('setting-chat-id').value.trim();
+            
+            if (tgWkr) localStorage.setItem('app_tg_worker', tgWkr);
+            if (token) localStorage.setItem('app_bot_token', token);
+            if (chat) localStorage.setItem('app_chat_id', chat);
+            
+            showToast('সফল!', 'টেলিগ্রাম ও Worker সেটিংস আপডেট হয়েছে', 'success');
+            closeBoxes();
+        }
+
+        function resetDefaults() {
+            localStorage.removeItem('app_tg_worker');
+            localStorage.removeItem('app_bot_token');
+            localStorage.removeItem('app_chat_id');
+            loadSettingsInputs();
+            showToast('রিসেট', 'ডিফল্ট সেটিংস লোড হয়েছে', 'info');
+        }
+
+        function showToast(title, msg, type = 'success') {
+            const toast = document.getElementById('custom-toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMsg = document.getElementById('toast-message');
+            const iconBox = document.getElementById('toast-icon-box');
+
+            toastTitle.innerText = title;
+            toastMsg.innerText = msg;
+
+            if (type === 'error') {
+                iconBox.className = "w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 text-sm";
+                iconBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                toast.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+            } else {
+                iconBox.className = "w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 text-sm";
+                iconBox.innerHTML = '<i class="fa-solid fa-check"></i>';
+                toast.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+
+        function openBox(boxId) {
+            document.getElementById('main-grid').classList.add('hidden');
+            ['box-tg-photo', 'box-tg-video', 'box-firebase', 'box-all-settings'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(boxId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeBoxes() {
+            ['box-tg-photo', 'box-tg-video', 'box-firebase', 'box-all-settings'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById('main-grid').classList.remove('hidden');
+            updateCounters();
+        }
+
+        let tgPhotos = JSON.parse(localStorage.getItem('fsh_final_tg_photos') || '[]');
+        let tgVideos = JSON.parse(localStorage.getItem('fsh_final_tg_videos') || '[]');
+
+        function persistData() {
+            localStorage.setItem('fsh_final_tg_photos', JSON.stringify(tgPhotos));
+            localStorage.setItem('fsh_final_tg_videos', JSON.stringify(tgVideos));
+            updateCounters();
+        }
+
+        function updateCounters() {
+            document.getElementById('grid-tg-photo-count').innerText = `${tgPhotos.length}টি ছবি সেভড`;
+            document.getElementById('tg-photo-badge').innerText = `${tgPhotos.length} টি ছবি`;
+
+            document.getElementById('grid-tg-video-count').innerText = `${tgVideos.length}টি ভিডিও সেভড`;
+            document.getElementById('tg-video-badge').innerText = `${tgVideos.length} টি ভিডিও`;
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatSeconds(secs) {
+            if (!isFinite(secs) || secs < 0) return '--';
+            const m = Math.floor(secs / 60);
+            const s = Math.floor(secs % 60);
+            return m > 0 ? `${m} মি. ${s} সে.` : `${s} সে.`;
+        }
+
+        function copyLink(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const old = btn.innerText;
+                btn.innerText = 'কপি হয়েছে!';
+                btn.classList.add('text-cyan-400');
+                showToast('কপি সফল', 'সরাসরি লিঙ্ক কপি হয়েছে');
+                setTimeout(() => {
+                    btn.innerText = old;
+                    btn.classList.remove('text-cyan-400');
+                }, 1500);
+            });
+        }
+
+        // ডিলিট ফাংশন (টেলিগ্রাম থেকেও ডিলিট হবে)
+        function deleteItem(type, index) {
+            if (!confirm('আপনি কি এই ফাইলটি মুছে ফেলতে চান?')) return;
+
+            const item = (type === 'tg_photo') ? tgPhotos[index] : tgVideos[index];
+            if (item && item.message_id) {
+                const formData = new FormData();
+                formData.append('action', 'delete');
+                formData.append('bot_token', getBotToken());
+                formData.append('chat_id', getChatId());
+                formData.append('message_id', item.message_id);
+
+                fetch(getTelegramWorkerUrl(), { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.ok) showToast('টেলিগ্রাম থেকে ডিলিট', 'টেলিগ্রাম থেকেও ফাইলটি সম্পূর্ণ মুছে গেছে');
+                    }).catch(e => console.log('Delete Error:', e));
+            }
+
+            if (type === 'tg_photo') tgPhotos.splice(index, 1);
+            else if (type === 'tg_video') tgVideos.splice(index, 1);
+
+            persistData();
+            renderAllLists();
+            showToast('মুছে ফেলা হয়েছে', 'তালিকা থেকে সরানো হয়েছে');
+        }
+
+        // ওয়েবসাইট থেকে আপলোড
+        function uploadTelegramFile(input, type) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const tgWorker = getTelegramWorkerUrl();
+            const botToken = getBotToken();
+            const chatId = getChatId();
+
+            const pBox = document.getElementById(`tg-${type}-progress-box`);
+            const pBar = document.getElementById(`tg-${type}-bar`);
+            const pPercent = document.getElementById(`tg-${type}-percent`);
+            const pMetric = document.getElementById(`tg-${type}-metric`);
+            const pSpeed = document.getElementById(`tg-${type}-speed`);
+            const pEta = document.getElementById(`tg-${type}-eta`);
+
+            pBox.classList.remove('hidden');
+            pBar.style.width = '0%';
+            pPercent.innerText = '০%';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('bot_token', botToken);
+            formData.append('chat_id', chatId);
+            formData.append('type', type);
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', tgWorker, true);
+
+            let startTime = Date.now();
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    pBar.style.width = percent + '%';
+                    pPercent.innerText = percent + '%';
+                    pMetric.innerText = `${formatBytes(e.loaded)} / ${formatBytes(e.total)}`;
+
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    if (elapsed > 0.2 && pSpeed && pEta) {
+                        const speed = e.loaded / elapsed;
+                        pSpeed.innerHTML = `<i class="fa-solid fa-bolt text-amber-400"></i> ${formatBytes(speed)}/s`;
+                        const rem = (e.total - e.loaded) / speed;
+                        pEta.innerHTML = `<i class="fa-regular fa-clock"></i> বাকি: ${formatSeconds(rem)}`;
+                    }
+
+                    if (percent >= 100) {
+                        pEta.innerHTML = `<span class="text-cyan-400">টেলিগ্রামে সেভ হচ্ছে...</span>`;
+                    }
+                }
+            };
+
+            xhr.onload = function() {
+                try {
+                    const res = JSON.parse(xhr.responseText);
+                    if (res.ok && res.file_id) {
+                        pPercent.innerText = '১০০% সম্পন্ন!';
+                        const directStreamUrl = `${tgWorker}/?id=${res.file_id}&token=${botToken}`;
+
+                        if (type === 'photo') {
+                            tgPhotos.unshift({ url: directStreamUrl, message_id: res.message_id, time: new Date().toLocaleTimeString() });
+                            renderTgPhotos();
+                            document.getElementById('firebase-thumb-input').value = directStreamUrl;
+                        } else {
+                            tgVideos.unshift({ url: directStreamUrl, message_id: res.message_id, name: file.name, time: new Date().toLocaleTimeString() });
+                            renderTgVideos();
+                            document.getElementById('firebase-video-input').value = directStreamUrl;
+                        }
+                        persistData();
+                        showToast('ইনবক্সে সেভ হয়েছে!', 'ডিরেক্ট স্ট্রিমিং লিঙ্ক তৈরি সফল');
+                    } else {
+                        showToast('ব্যর্থ', res.error || 'টেলিগ্রাম আপলোড ব্যর্থ', 'error');
+                    }
+                } catch(e) {
+                    showToast('ত্রুটি', 'সার্ভার রেসপন্স বুঝতে পারেনি', 'error');
+                }
+                input.value = '';
+            };
+
+            xhr.onerror = function() {
+                showToast('সংযোগ ত্রুটি', 'Worker চেক করুন', 'error');
+                pBox.classList.add('hidden');
+            };
+
+            xhr.send(formData);
+        }
+
+        // ফায়ারবেস অটো-সিঙ্ক (টেলিগ্রাম বটে সেন্ড/ফরওয়ার্ড করলে অটো শো করবে)
+        database.ref('tg_stream').on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            if (!data || !data.url) return;
+
+            const existsPhoto = tgPhotos.some(item => item.url === data.url);
+            const existsVideo = tgVideos.some(item => item.url === data.url);
+
+            if (!existsPhoto && !existsVideo) {
+                if (data.type === 'video') {
+                    tgVideos.unshift({
+                        url: data.url,
+                        message_id: data.message_id,
+                        name: data.name || 'Telegram Video',
+                        time: new Date(data.createdAt || Date.now()).toLocaleTimeString()
+                    });
+                    renderTgVideos();
+                    showToast('নতুন ভিডিও সিঙ্ক!', 'টেলিগ্রাম থেকে নতুন ভিডিও যুক্ত হয়েছে');
+                } else {
+                    tgPhotos.unshift({
+                        url: data.url,
+                        message_id: data.message_id,
+                        name: data.name || 'Telegram Photo',
+                        time: new Date(data.createdAt || Date.now()).toLocaleTimeString()
+                    });
+                    renderTgPhotos();
+                    showToast('নতুন ছবি সিঙ্ক!', 'টেলিগ্রাম থেকে নতুন ছবি যুক্ত হয়েছে');
+                }
+                persistData();
+            }
+        });
+
+        // Firebase ডেটাবেস সেভার
+        function clearFirebaseInputs() {
+            document.getElementById('firebase-post-title').value = '';
+            document.getElementById('firebase-thumb-input').value = '';
+            document.getElementById('firebase-video-input').value = '';
+        }
+
+        function saveDataToFirebase() {
+            const title = document.getElementById('firebase-post-title').value.trim();
+            const thumb = document.getElementById('firebase-thumb-input').value.trim();
+            const video = document.getElementById('firebase-video-input').value.trim();
+            const msg = document.getElementById('firebase-status-msg');
+
+            if (!video && !thumb) {
+                alert('দয়া করে থাম্বনেইল অথবা ভিডিও লিংক দিন!');
+                return;
+            }
+
+            msg.classList.remove('hidden');
+            msg.className = 'text-xs text-center font-bold text-amber-400';
+            msg.innerText = '⏳ inkam-342f4 এ সেভ হচ্ছে...';
+
+            database.ref('videos').push({
+                title: title || 'Untitled Media',
+                thumbnail: thumb || '',
+                url: video || '',
+                createdAt: Date.now()
+            }).then(() => {
+                msg.className = 'text-xs text-center font-bold text-emerald-400';
+                msg.innerText = '🎉 ফায়ারবেসে সফলভাবে সেভ হয়েছে!';
+                clearFirebaseInputs();
+                showToast('ফায়ারবেস সেভ!', 'inkam-342f4 এ ডাটা সেভ হয়েছে');
+                setTimeout(() => msg.classList.add('hidden'), 3500);
+            }).catch(err => {
+                msg.className = 'text-xs text-center font-bold text-rose-500';
+                msg.innerText = 'ত্রুটি: ' + err.message;
+            });
+        }
+
+        // রেন্ডারিং ফাংশন
+        function renderTgPhotos() {
+            const list = document.getElementById('tg-photo-list');
+            if (!tgPhotos.length) {
+                list.innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">কোনো টেলিগ্রাম ছবি নেই।</p>`;
+                return;
+            }
+            list.innerHTML = tgPhotos.map((item, idx) => `
+                <div class="bg-[#090d1f] border border-slate-800/80 p-2.5 rounded-2xl flex items-center gap-3 shadow-md">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-black/40 border border-slate-700 shrink-0 flex items-center justify-center">
+                        <img src="${item.url}" referrerpolicy="no-referrer" loading="lazy" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="text" readonly value="${item.url}" class="w-full bg-[#04060f] border border-slate-800 text-[11px] text-cyan-400 font-poppins px-2 py-1 rounded-lg mb-1.5 outline-none truncate">
+                        <div class="flex items-center gap-2">
+                            <button onclick="copyLink('${item.url}', this)" class="bg-[#121833] hover:bg-cyan-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition">কপি</button>
+                            <button onclick="deleteItem('tg_photo', ${idx})" class="bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition">ডিলিট</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTgVideos() {
+            const list = document.getElementById('tg-video-list');
+            if (!tgVideos.length) {
+                list.innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center">কোনো টেলিগ্রাম ভিডিও নেই।</p>`;
+                return;
+            }
+            list.innerHTML = tgVideos.map((item, idx) => `
+                <div class="bg-[#090d1f] border border-slate-800/80 p-3 rounded-2xl space-y-2.5 shadow-md">
+                    <div class="aspect-video bg-black rounded-xl overflow-hidden border border-slate-800">
+                        <video controls playsinline preload="metadata" referrerpolicy="no-referrer" class="w-full h-full object-contain">
+                            <source src="${item.url}" type="video/mp4">
+                        </video>
+                    </div>
+                    <input type="text" readonly value="${item.url}" class="w-full bg-[#04060f] border border-slate-800 text-[11px] text-sky-400 font-poppins px-2 py-1.5 rounded-lg outline-none truncate">
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyLink('${item.url}', this)" class="flex-1 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white border border-sky-500/30 text-xs font-bold py-1.5 rounded-xl transition text-center">কপি</button>
+                        <button onclick="deleteItem('tg_video', ${idx})" class="flex-1 bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/20 text-xs font-bold py-1.5 rounded-xl transition text-center">ডিলিট</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAllLists() {
+            renderTgPhotos();
+            renderTgVideos();
+            updateCounters();
+        }
+
+        // ইনিশিয়াল লোড
+        renderAllLists();
+    </script>
+</body>
+</html>
